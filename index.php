@@ -56,8 +56,11 @@ $currentPage = $_GET['page'] ?? 'home';
     <!-- Dynamic Page Content -->
     <main class="flex-1 p-6">
       <?php
-        if ($currentPage === 'check_model') {
+        $page = $_GET['page'] ?? 'home';
+        if ($page === 'check_model') {
             include 'check_model.php';
+        } elseif ($page === 'manual') {
+            include 'manual_partial.php';
         } else {
             include 'dashboard_home.php';
         }

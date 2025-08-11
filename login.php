@@ -7,9 +7,15 @@ $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $npk = trim($_POST['npk'] ?? '');
     $password = trim($_POST['password'] ?? '');
-
+    
     // Cek user berdasarkan NPK dan dept = QA
-    $stmt = $connUser->prepare("SELECT * FROM ct_users WHERE npk = ? AND dept = 'QA' LIMIT 1");
+    $stmt = $connUser->prepare("
+    SELECT * FROM ct_users 
+    WHERE npk = ? 
+      AND dept IN ('QA', 'QCE-2W', 'QCE-4W') 
+    LIMIT 1
+    ");
+
     $stmt->bind_param("s", $npk);
     $stmt->execute();
     $result = $stmt->get_result();

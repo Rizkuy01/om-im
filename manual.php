@@ -1,27 +1,16 @@
 <?php
 require_once 'config.php';
 
-$id = $_GET['id'] ?? ''; // model_no dari URL
+$id = $_GET['id'] ?? '';
 $allowedLines = ['RP-WLC', 'RP-OSC'];
 $modelName = 'Unknown Model';
 $modelCode = '';
-// $line = 'RP-WLC';
 $line = '';
 $modelFound = false;
 
 if ($id) {
-    // Hapus strip terakhir jika ada agar tidak jadi double (--IM.jpg)
     $cleanId = rtrim($id, '-');
-
-    // Ambil Model dan Line dari database berdasarkan Rev terbaru
-    $stmt = $conn->prepare("
-        SELECT Model, Line 
-        FROM master_model_ff 
-        WHERE Model_no = ? 
-        ORDER BY Rev DESC 
-        LIMIT 1
-    ");
-
+    $stmt = $conn->prepare("SELECT Model, Line FROM master_model_ff WHERE Model_no = ? ORDER BY Rev DESC LIMIT 1");
     $stmt->bind_param("s", $id);
     $stmt->execute();
     $stmt->bind_result($modelCode, $lineFromDb);
@@ -29,7 +18,6 @@ if ($id) {
     if ($stmt->fetch()) {
         $modelName = $modelCode;
         $line = in_array($lineFromDb, $allowedLines) ? $lineFromDb : 'RP-WLC';
-
         $baseDir = "manual_images/$line";
         $imgIMPath = $baseDir . "\\" . $cleanId . "-IM.jpg";
         $imgOMPath = $baseDir . "\\" . $cleanId . "-OM.jpg";
@@ -37,243 +25,125 @@ if ($id) {
         if (file_exists($imgIMPath) && file_exists($imgOMPath)) {
             $modelFound = true;
         } else {
-            $modelName = "Manual file not found.";
+            $modelName = "⚠ Manual file not found.";
         }
     } else {
-        $modelName = "Model not found in database.";
+        $modelName = "⚠ Model not found in database.";
     }
 
     $stmt->close();
 }
 ?>
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title><?= htmlspecialchars($modelName) ?> - DIGITAL OM/IM</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="css/googleapis.css" rel="stylesheet">
-  <style>
-    /* Styling... (potong jika tidak perlu diubah) */
-    body {
-      margin: 0;
-      font-family: 'Inter', sans-serif;
-      background: #f5f6fa;
-      color: #2d3436;
-    }
-
-    .topbar {
-      padding: 16px 30px;
-      background: #ffffff;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
-      position: sticky;
-      top: 0;
-      z-index: 999;
-    }
-
-    .inputs {
-      display: flex;
-      gap: 24px;
-      flex-wrap: wrap;
-    }
-
-    .input-group {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .input-group label {
-      font-size: 13px;
-      font-weight: 700;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-      color: #636e72;
-      letter-spacing: 0.5px;
-    }
-
-    .input-group input {
-      padding: 10px 14px;
-      border: 1px solid #dfe6e9;
-      border-radius: 8px;
-      background: #f1f2f6;
-      font-weight: 600;
-      color: #2d3436;
-      min-width: 180px;
-    }
-
-    .buttons {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .buttons button {
-      padding: 10px 20px;
-      font-weight: 600;
-      background: #0984e3;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: 0.3s;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-
-    .buttons button:hover {
-      background: #74b9ff;
-    }
-
-    .buttons .back {
-      background: #d63031;
-    }
-
-    .buttons .back:hover {
-      background: #c0392b;
-    }
-
-    .slider-container {
-      width: 100%;
-      height: calc(100vh - 120px);
-      background: #000;
-      position: relative;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-    }
-
-    .slide {
-      display: none;
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      transition: opacity 0.4s ease-in-out;
-    }
-
-    .slide img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      background-color: #000;
-    }
-
-    .slide.active {
-      display: block;
-    }
-
-    .controls {
-      position: absolute;
-      top: 50%;
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      transform: translateY(-50%);
-      padding: 0 25px;
-    }
-
-    .controls button {
-      background: rgba(255, 255, 255, 0.15);
-      color: #fff;
-      border: none;
-      font-size: 28px;
-      padding: 10px 18px;
-      border-radius: 50%;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    .controls button:hover {
-      background: rgba(255, 255, 255, 0.3);
-    }
-
-    .center-message {
-      color: #fab1a0;
-      font-size: 26px;
-      font-weight: 700;
-      text-align: center;
-      padding: 20px;
-    }
-
-    @media (max-width: 768px) {
-      .inputs {
-        flex-direction: column;
-        gap: 12px;
-      }
-
-      .buttons {
-        justify-content: center;
-        gap: 10px;
-      }
-
-      .slider-container {
-        height: 70vh;
-      }
-
-      .controls button {
-        font-size: 22px;
-        padding: 8px 14px;
-      }
-    }
-  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
-<body>
-  <div class="topbar">
-    <div class="inputs">
-      <div class="input-group">
-        <label>Model No | KYB Number</label>
-        <input type="text" value="<?= htmlspecialchars($id ?: 'NOT FOUND') ?>" readonly>
-      </div>
-      <div class="input-group">
-        <label>Model Name</label>
-        <input type="text" value="<?= htmlspecialchars($modelCode ?: 'NOT FOUND') ?>" readonly>
-      </div>
-      <div class="input-group">
-        <label>Line</label>
-        <input type="text" value="<?= htmlspecialchars($line ?: 'NOT FOUND') ?>" readonly>
+<body class="bg-gray-100 text-gray-800 font-sans min-h-screen flex flex-col">
+
+  <header class="bg-white shadow sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-6 flex flex-col gap-4">
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-700 tracking-wide text-center">
+        - DIGITAL OM / IM VIEWER -
+      </h1>
+
+      <!-- FORM & BUTTON -->
+      <div class="w-full flex flex-col md:flex-row md:justify-between md:items-center gap-6">
+
+        <!-- FORM -->
+        <div class="flex flex-wrap justify-center md:justify-start gap-6">
+          <div>
+            <label class="block text-xs font-bold uppercase text-gray-500">
+              <i class="fa fa-barcode"></i> Model No
+            </label>
+            <input type="text" value="<?= htmlspecialchars($id ?: 'NOT FOUND') ?>" readonly class="bg-gray-100 px-3 py-2 rounded w-40 font-semibold text-gray-800 border border-gray-300" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-gray-500">
+              <i class="fa fa-file-pen"></i> Model Name
+            </label>
+            <input type="text" value="<?= htmlspecialchars($modelCode ?: 'NOT FOUND') ?>" readonly class="bg-gray-100 px-3 py-2 rounded w-40 font-semibold text-gray-800 border border-gray-300" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-gray-500">
+              <i class="fa fa-hard-drive"></i> Line
+            </label>
+            <input type="text" value="<?= htmlspecialchars($line ?: 'NOT FOUND') ?>" readonly class="bg-gray-100 px-3 py-2 rounded w-40 font-semibold text-gray-800 border border-gray-300" />
+          </div>
+        </div>
+        <!-- END FORM -->
+
+        <!-- BUTTON -->
+        <div class="flex justify-center md:justify-end gap-3 flex-wrap">
+          <button onclick="window.location.href='dashboard.php?model_no=<?= urlencode($id) ?>'" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-4 py-2 rounded shadow flex items-center gap-2">
+            <i class="fa-solid fa-file-lines"></i> IM
+          </button>
+          <button onclick="window.location.href='checksheet.php'" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-4 py-2 rounded shadow flex items-center gap-2">
+            <i class="fa-solid fa-file-lines"></i> OM
+          </button>
+          <button onclick="window.location.href='index.php'" class="bg-red-600 hover:bg-red-500 text-white font-semibold px-4 py-2 rounded shadow flex items-center gap-2">
+            <i class="fa-solid fa-arrow-left"></i> Kembali
+          </button>
+        </div>
+        <!-- END BUTTON -->
       </div>
     </div>
+  </header>
 
-    <div class="buttons">
-      <button onclick="window.location.href='checksheet.php'">CHECKSHEET IM</button>
-      <button onclick="window.location.href='checksheet.php'">CHECKSHEET OM</button>
-      <button class="back" onclick="window.location.href='index.php'">KEMBALI</button>
-    </div>
-  </div>
 
-  <div class="slider-container">
+  <main class="flex-grow relative">
     <?php if (!$modelFound): ?>
-      <div class="center-message">⚠ <?= htmlspecialchars($modelName) ?></div>
+      <div class="flex items-center justify-center h-[calc(100vh-120px)] bg-black/80 text-yellow-200 text-2xl font-bold p-6 text-center">
+        <?= htmlspecialchars($modelName) ?>
+      </div>
     <?php else: ?>
-      <!-- IM -->
-      <div class="slide active">
-        <img src="show_image.php?id=<?= urlencode($cleanId) ?>&line=<?= urlencode($line) ?>&type=IM" alt="IM Manual">
-      </div>
-      <!-- OM -->
-      <div class="slide">
-        <img src="show_image.php?id=<?= urlencode($cleanId) ?>&line=<?= urlencode($line) ?>&type=OM" alt="OM Manual">
-      </div>
+      <!-- Slider Container -->
+      <div class="relative w-full h-[calc(100vh-120px)] bg-black overflow-hidden">
+        <!-- Slide 1: IM -->
+        <div class="slide absolute inset-0 opacity-100 transition-opacity duration-500 z-10">
+          <img src="show_image.php?id=<?= urlencode($cleanId) ?>&line=<?= urlencode($line) ?>&type=IM" alt="IM Manual" class="w-full h-full object-contain bg-black" />
+        </div>
+        <!-- Slide 2: OM -->
+        <div class="slide absolute inset-0 opacity-0 transition-opacity duration-500 z-0">
+          <img src="show_image.php?id=<?= urlencode($cleanId) ?>&line=<?= urlencode($line) ?>&type=OM" alt="OM Manual" class="w-full h-full object-contain bg-black" />
+        </div>
 
-      <div class="controls">
-        <button onclick="prevSlide()">⟨</button>
-        <button onclick="nextSlide()">⟩</button>
+        <!-- Controls -->
+        <div class="absolute top-1/2 left-0 right-0 flex justify-between px-6 transform -translate-y-1/2 z-20">
+          <button onclick="prevSlide()" class="text-white text-3xl bg-white/20 hover:bg-white/30 p-3 rounded-full">
+            ⟨
+          </button>
+          <button onclick="nextSlide()" class="text-white text-3xl bg-white/20 hover:bg-white/30 p-3 rounded-full">
+            ⟩
+          </button>
+        </div>
+
+        <!-- Indicator -->
+        <div id="slide-indicator" class="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-white/20 text-white px-4 py-1 rounded-full text-sm z-20">
+          1 / 2
+        </div>
       </div>
     <?php endif; ?>
-  </div>
+  </main>
 
   <script>
     const slides = document.querySelectorAll('.slide');
+    const indicator = document.getElementById('slide-indicator');
     let current = 0;
 
     function showSlide(index) {
       slides.forEach((slide, i) => {
-        slide.classList.toggle('active', i === index);
+        slide.style.opacity = (i === index) ? '1' : '0';
+        slide.style.zIndex = (i === index) ? '10' : '0';
       });
+      if (indicator) {
+        indicator.textContent = `${index + 1} / ${slides.length}`;
+      }
     }
 
     function nextSlide() {

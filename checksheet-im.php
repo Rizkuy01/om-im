@@ -65,7 +65,7 @@
         <button onclick="window.location.href='index.php'" class="bg-red-600 hover:bg-red-500 text-white font-semibold px-4 py-2 rounded shadow flex items-center gap-2">
             <i class="fa-solid fa-arrow-left"></i> Kembali
         </button>
-        <h2 class="text-xl font-semibold text-gray-800 text-center w-full -ml-16">
+        <h2 class="text-xl font-semibold text-gray-800 text-center w-auto -ml-16">
             Model No: <?= htmlspecialchars($modelNo . 'IM') ?>
         </h2>
         <div class="w-28"></div>

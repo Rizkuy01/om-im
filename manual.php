@@ -10,7 +10,7 @@ $modelFound = false;
 
 if ($id) {
     $cleanId = rtrim($id, '-');
-    $stmt = $conn->prepare("SELECT Model, Line FROM master_model_ff WHERE Model_no = ? ORDER BY Rev DESC LIMIT 1");
+    $stmt = $connData->prepare("SELECT Model, Line FROM master_model_ff WHERE Model_no = ? ORDER BY Rev DESC LIMIT 1");
     $stmt->bind_param("s", $id);
     $stmt->execute();
     $stmt->bind_result($modelCode, $lineFromDb);
@@ -34,6 +34,7 @@ if ($id) {
     $stmt->close();
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -80,7 +81,7 @@ if ($id) {
 
         <!-- BUTTON -->
         <div class="flex justify-center md:justify-end gap-3 flex-wrap">
-          <button onclick="window.location.href='dashboard.php?model_no=<?= urlencode($id) ?>'" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-4 py-2 rounded shadow flex items-center gap-2">
+          <button onclick="window.location.href='checksheet-im.php?model_no=<?= urlencode($id) ?>'" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-4 py-2 rounded shadow flex items-center gap-2">
             <i class="fa-solid fa-file-lines"></i> IM
           </button>
           <button onclick="window.location.href='checksheet.php'" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-4 py-2 rounded shadow flex items-center gap-2">

@@ -20,7 +20,7 @@ $currentPage = $_GET['page'] ?? 'home';
 </head>
 <body class="flex h-screen bg-gray-100">
 
-  <!-- Sidebar -->
+  <!-- SIDEBAR -->
   <aside class="w-64 bg-white shadow-md flex flex-col">
     <div class="px-6 py-5 border-b">
       <img src="assets/kyb.png" alt="Logo" class="w-28 mx-auto">
@@ -32,14 +32,20 @@ $currentPage = $_GET['page'] ?? 'home';
       <a href="index.php?page=check_model" class="flex items-center px-3 py-2 rounded-md <?= $currentPage === 'check_model' ? 'text-red-600 font-semibold' : 'text-gray-700 hover:text-red-600' ?>">
         <i class="fa fa-magnifying-glass px-2"></i> Check Model
       </a>
+      <a href="index.php?page=monitoring" 
+        class="flex items-center px-3 py-2 rounded-md <?= $currentPage === 'monitoring' ? 'text-red-600 font-semibold' : 'text-gray-700 hover:text-red-600' ?>">
+        <i class="fa fa-chart-line px-2"></i> Monitoring OM/IM
+      </a>
     </nav>
   </aside>
 
-  <!-- Main Content -->
+  <!-- MAIN CONTENT -->
   <div class="flex-1 flex flex-col">
     <!-- Header -->
     <header class="flex justify-between items-center bg-white shadow px-6 py-5">
-      <h1 class="text-lg font-semibold">Welcome, <strong><?= htmlspecialchars($_SESSION['username']) ?></strong></h1>
+      <h1 class="text-lg font-semibold">
+        Welcome, <strong><?= htmlspecialchars($_SESSION['username']) ?></strong>
+      </h1>
       <div class="relative">
         <button id="profileBtn" class="flex items-center gap-3 px-3 py-2 rounded hover:bg-gray-100">
           <span class="font-medium text-gray-700"><?= htmlspecialchars($_SESSION['username']) ?></span>
@@ -56,14 +62,17 @@ $currentPage = $_GET['page'] ?? 'home';
     <!-- Dynamic Page Content -->
     <main class="flex-1 p-6">
       <?php
-        $page = $_GET['page'] ?? 'home';
-        if ($page === 'check_model') {
-            include 'check_model.php';
-        } elseif ($page === 'manual') {
-            include 'manual_partial.php';
-        } else {
-            include 'dashboard_home.php';
-        }
+          $page = $_GET['page'] ?? 'home';
+
+          if ($page === 'check_model') {
+              include 'check_model.php';
+          } elseif ($page === 'manual') {
+              include 'manual_partial.php';
+          } elseif ($page === 'monitoring') {
+              include 'monitoring_manual.php'; // file monitoring
+          } else {
+              include 'dashboard_home.php';
+          }
       ?>
     </main>
   </div>

@@ -25,4 +25,15 @@ $connData = new mysqli($host_datadb, $user_datadb, $pass_datadb, $db_datadb);
 if ($connData->connect_error) {
     die("Koneksi ke DB data gagal: " . $connData->connect_error);
 }
+
+// IM
+$host_imdb = 'localhost';
+$user_imdb = 'root';
+$pass_imdb = '';
+$db_imdb   = 'om_im';
+
+$connIM = new mysqli($host_imdb, $user_imdb, $pass_imdb, $db_imdb);
+if ($connIM->connect_error) {
+    die("Koneksi ke DB IM gagal: " . $connIM->connect_error);
+}
 ?>

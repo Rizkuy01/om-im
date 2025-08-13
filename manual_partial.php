@@ -25,10 +25,10 @@ if ($id) {
         if (file_exists($imgIMPath) && file_exists($imgOMPath)) {
             $modelFound = true;
         } else {
-            $modelName = "⚠ Manual file not found.";
+            $modelName = "⚠ Manual file not found. ⚠";
         }
     } else {
-        $modelName = "⚠ Model not found in database.";
+        $modelName = "⚠ Model not found in database. ⚠";
     }
     $stmt->close();
 }
@@ -64,6 +64,7 @@ if ($id) {
                 </div>
             </div>
             <!-- END FORM -->
+            
             <!-- BUTTON -->
             <div class="flex justify-center md:justify-end gap-3 flex-wrap">
                 <button onclick="window.location.href='checksheet-im.php?model_no=<?= urlencode($id) ?>'" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-4 py-2 rounded shadow flex items-center gap-2">
@@ -79,36 +80,36 @@ if ($id) {
             <!-- END BUTTON -->
         </div>
         
-        <main class="flex-grow relative">
+        <main class="flex-grow relative"> 
                 <?php if (!$modelFound): ?>
                 <div class="flex items-center justify-center h-[calc(100vh-120px)] bg-black/80 text-yellow-200 text-2xl font-bold p-6 text-center">
                     <?= htmlspecialchars($modelName) ?>
                 </div>
                 <?php else: ?>
-                <!-- Slider Container -->
+                <!-- SLIDER CONTAINER -->
                 <div class="relative w-full h-[calc(100vh-120px)] bg-black overflow-hidden">
-                    <!-- Slide 1: IM -->
+                    <!-- IM -->
                     <div class="slide absolute inset-0 opacity-100 transition-opacity duration-500 z-10">
                     <img src="show_image.php?id=<?= urlencode($cleanId) ?>&line=<?= urlencode($line) ?>&type=IM" alt="IM Manual" class="w-full h-full object-contain bg-black" />
                     </div>
-                    <!-- Slide 2: OM -->
+                    <!-- OM -->
                     <div class="slide absolute inset-0 opacity-0 transition-opacity duration-500 z-0">
                     <img src="show_image.php?id=<?= urlencode($cleanId) ?>&line=<?= urlencode($line) ?>&type=OM" alt="OM Manual" class="w-full h-full object-contain bg-black" />
                     </div>
 
-                    <!-- Controls -->
+                    <!-- ARROW CONTROLS -->
                     <div class="absolute top-1/2 left-0 right-0 flex justify-between px-6 transform -translate-y-1/2 z-20">
-                    <button onclick="prevSlide()" class="text-white text-3xl bg-white/20 hover:bg-white/30 p-3 rounded-full">
-                        ⟨
-                    </button>
-                    <button onclick="nextSlide()" class="text-white text-3xl bg-white/20 hover:bg-white/30 p-3 rounded-full">
-                        ⟩
-                    </button>
+                        <button onclick="prevSlide()" class="text-white text-3xl bg-white/20 hover:bg-white/30 p-3 rounded-full">
+                            ⟨
+                        </button>
+                        <button onclick="nextSlide()" class="text-white text-3xl bg-white/20 hover:bg-white/30 p-3 rounded-full">
+                            ⟩
+                        </button>
                     </div>
 
-                    <!-- Indicator -->
+                    <!-- INDICATOR -->
                     <div id="slide-indicator" class="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-white/20 text-white px-4 py-1 rounded-full text-sm z-20">
-                    1 / 2
+                        1 / 2
                     </div>
                 </div>
                 <?php endif; ?>

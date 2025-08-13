@@ -7,8 +7,6 @@ $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $npk = trim($_POST['npk'] ?? '');
     $password = trim($_POST['password'] ?? '');
-    
-    // Cek user berdasarkan NPK dan dept = QA
     $stmt = $connUser->prepare("
     SELECT * FROM ct_users 
     WHERE npk = ? 
@@ -22,7 +20,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user = $result->fetch_assoc();
 
     if ($user) {
-        // Verifikasi password hash
         if (password_verify($password, $user['pwd'])) {
             $_SESSION['user_id'] = $user['npk'];
             $_SESSION['username'] = $user['full_name'];

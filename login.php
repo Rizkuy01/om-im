@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt = $connUser->prepare("
     SELECT * FROM ct_users 
     WHERE npk = ? 
-      AND dept IN ('QA', 'QCE-2W', 'QCE-4W') 
+      AND dept IN ('QA') 
     LIMIT 1
     ");
 

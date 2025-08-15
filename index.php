@@ -6,6 +6,11 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $currentPage = $_GET['page'] ?? 'home';
+
+if ($currentPage === 'monitoring') {
+    include 'monitoring_manual.php';
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -61,18 +66,26 @@ $currentPage = $_GET['page'] ?? 'home';
 
     <!-- Dynamic Page Content -->
     <main class="flex-1 p-6">
-      <?php
-          $page = $_GET['page'] ?? 'home';
-
-          if ($page === 'check_model') {
-              include 'check_model.php';
-          } elseif ($page === 'manual') {
-              include 'manual_partial.php';
-          } elseif ($page === 'monitoring') {
-              include 'monitoring_manual.php'; // file monitoring
-          } else {
-              include 'dashboard_home.php';
-          }
+     <?php
+        switch ($currentPage) {
+          case 'check_model':
+            include 'check_model.php';
+            break;
+          case 'manual':
+            include 'manual_partial.php';
+            break;
+          case 'monitoring':
+            include 'monitoring_manual.php';
+            break;
+          case 'workstations':
+            include 'workstations.php';
+            break;
+          case 'sub_workstations':
+            include 'sub_workstations.php';
+            break;
+          default:
+            include 'dashboard_home.php';
+        }
       ?>
     </main>
   </div>

@@ -27,13 +27,13 @@ if ($connData->connect_error) {
 }
 
 // IM
-$host_imdb = 'localhost';
-$user_imdb = 'root';
-$pass_imdb = '';
-$db_imdb   = 'om_im';
+$host_imom = 'localhost';
+$user_imom = 'root';
+$pass_imom = '';
+$db_imom   = 'om_im';
 
-$connIM = new mysqli($host_imdb, $user_imdb, $pass_imdb, $db_imdb);
-if ($connIM->connect_error) {
-    die("Koneksi ke DB IM gagal: " . $connIM->connect_error);
+$connIMOM = new mysqli($host_imom, $user_imom, $pass_imom, $db_imom);
+if ($connIMOM->connect_error) {
+    die("Koneksi ke DB OM IM gagal: " . $connIMOM->connect_error);
 }
 ?>

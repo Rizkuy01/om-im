@@ -83,6 +83,9 @@ if ($currentPage === 'monitoring') {
           case 'sub_workstations':
             include 'sub_workstations.php';
             break;
+          case 'detail_sub_workstations':
+            include 'detail_sub_workstations.php';
+            break;
           default:
             include 'dashboard_home.php';
         }

@@ -44,6 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <title>Login - DIGITAL OM/IM</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
     body {
@@ -97,6 +98,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         LOGIN
       </button>
     </form>
+
+        <!-- Tombol akses langsung -->
+    <div class="mt-6 flex gap-3 justify-center">
+      <a href="index.php?page=check_model" 
+        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-4 rounded-md transition duration-300 text-center flex items-center justify-center gap-2">
+        <i class="fa-solid fa-search"></i> Check Model
+      </a>
+      <a href="index.php?page=monitoring" 
+        class="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 px-4 rounded-md transition duration-300 text-center flex items-center justify-center gap-2">
+        <i class="fa-solid fa-tv"></i> Monitoring
+      </a>
+    </div>
   </div>
 
 </body>

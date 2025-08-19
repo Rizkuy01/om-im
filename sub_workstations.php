@@ -27,12 +27,12 @@ $subs = $stmt->get_result();
 <div class="py-8 grid grid-cols-1 md:grid-cols-3 gap-6">
     <?php if ($subs->num_rows > 0): ?>
         <?php while ($row = $subs->fetch_assoc()): ?>
-            <div class="flex items-center justify-between bg-gradient-to-br from-white to-gray-50 
+            <div class="flex flex-col justify-between bg-gradient-to-br from-white to-gray-50 
                         shadow-md hover:shadow-lg rounded-lg p-4 border border-gray-100 
                         transform hover:-translate-y-1 transition-all duration-300">
                 
                 <!-- Icon + Title -->
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 mb-4">
                     <div class="bg-red-100 text-red-600 p-3 rounded-full flex items-center justify-center">
                         <i class="fa-solid fa-industry text-lg"></i>
                     </div>
@@ -41,11 +41,17 @@ $subs = $stmt->get_result();
                     </h3>
                 </div>
 
-                <!-- Button menuju Table -->
-                <a href="index.php?page=detail_sub_workstations&workstation_id=<?= $workstation_id ?>&dept_id=<?= $dept_id ?>&sub_id=<?= $row['id'] ?>"
-                   class="bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-4 py-2 rounded-full shadow-md transition-all duration-300">
-                    Pilih
-                </a>
+                <!-- Dua Button: IM & OM -->
+                <div class="flex gap-2">
+                    <a href="index.php?page=detail_sub_workstations&type=IM&workstation_id=<?= $workstation_id ?>&dept_id=<?= $dept_id ?>&sub_id=<?= $row['id'] ?>"
+                       class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-3 py-2 rounded shadow-md text-center transition-all duration-300">
+                        IM
+                    </a>
+                    <a href="index.php?page=detail_sub_workstations&type=OM&workstation_id=<?= $workstation_id ?>&dept_id=<?= $dept_id ?>&sub_id=<?= $row['id'] ?>"
+                       class="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-3 py-2 rounded shadow-md text-center transition-all duration-300">
+                        OM
+                    </a>
+                </div>
             </div>
         <?php endwhile; ?>
     <?php else: ?>

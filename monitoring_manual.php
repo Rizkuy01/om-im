@@ -1,7 +1,6 @@
 <?php
 require_once 'config.php';
 
-$allowedLines = ['RP-WLC', 'RP-OSC'];
 $modelName = 'Unknown Model';
 $modelCode = '';
 $line = '';
@@ -20,12 +19,11 @@ if ($row = $result->fetch_assoc()) {
     $id = $row['Model_no'];
     $cleanId = rtrim($id, '-');
     $modelCode = $row['Model'];
-    $lineFromDb = $row['Line'];
-    $line = in_array($lineFromDb, $allowedLines) ? $lineFromDb : 'RP-WLC';
+    $line = $row['Line']; // langsung ambil, tanpa pembatasan
 
     $baseDir = "manual_images/$line";
-    $imgIMPath = $baseDir . "\\" . $cleanId . "-IM.jpg";
-    $imgOMPath = $baseDir . "\\" . $cleanId . "-OM.jpg";
+    $imgIMPath = $baseDir . "/" . $cleanId . "-IM.jpg";
+    $imgOMPath = $baseDir . "/" . $cleanId . "-OM.jpg";
 
     if (file_exists($imgIMPath) && file_exists($imgOMPath)) {
         $modelFound = true;
@@ -36,6 +34,16 @@ if ($row = $result->fetch_assoc()) {
 } else {
     $modelName = "⚠ No data found in database.";
 }
+
+$npk = $_GET['npk'] ?? null;
+$machine = $_GET['machine'] ?? null;
+
+if (!$npk || !$machine) {
+    echo "<p class='text-red-600 font-bold text-center'>Akses tidak valid. Silakan pilih NPK & Mesin terlebih dahulu.</p>";
+    exit;
+}
+
+
 ?>
 
 <!DOCTYPE html>

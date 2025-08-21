@@ -100,17 +100,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </form>
 
         <!-- Tombol akses langsung -->
-    <div class="mt-6 flex gap-3 justify-center">
-      <a href="index.php?page=check_model" 
-        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-4 rounded-md transition duration-300 text-center flex items-center justify-center gap-2">
-        <i class="fa-solid fa-search"></i> Check Model
-      </a>
-      <a href="index.php?page=monitoring" 
-        class="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 px-4 rounded-md transition duration-300 text-center flex items-center justify-center gap-2">
-        <i class="fa-solid fa-tv"></i> Monitoring
-      </a>
-    </div>
+      <div class="grid grid-cols-2 gap-3 mt-3">
+        <button type="button" onclick="window.location.href='index.php?page=check_model'" 
+          class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-md transition duration-300">
+          Check Model
+        </button>
+        <button type="button" onclick="openMonitoringModal()" 
+          class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-md transition duration-300">
+          Monitoring
+        </button>
+      </div>
+
+
   </div>
 
+<?php include 'partials/monitoring_modal.php'; ?>
 </body>
 </html>

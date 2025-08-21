@@ -62,6 +62,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } 
         // kalau data baru
         else {
+            if ($existing) {
+                die("Part Number sudah ada. Gunakan fitur Edit/Replace untuk mengganti file lama.");
+            }
             if (move_uploaded_file($uploaded['tmp_name'], $targetFile)) {
                 $stmt = $connIMOM->prepare("INSERT INTO {$tableName} (sub_workstation_id, part_number, file_name, path_name) VALUES (?, ?, ?, ?)");
                 $stmt->bind_param("isss", $sub_workstation_id, $part_number, $newFileName, $basePath);

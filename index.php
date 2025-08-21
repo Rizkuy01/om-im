@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once 'config.php';
 
 $currentPage = $_GET['page'] ?? 'home';
 
@@ -12,10 +13,55 @@ if (!in_array($currentPage, $publicPages) && !isset($_SESSION['user_id'])) {
     exit;
 }
 
-// kalau monitoring langsung include (tanpa layout)
-if ($currentPage === 'monitoring') {
-    include 'monitoring_manual.php';
-    exit;
+// ======== CEK LOGIC MONITORING ========
+$alert = null;
+if ($currentPage === 'monitoring' && isset($_GET['npk'])) {
+    $npk     = $_GET['npk'] ?? '';
+    $machine = $_GET['machine'] ?? '';
+
+    if ($npk) {
+        // cek NPK di db lembur1.ct_users
+        $stmt = $connUser->prepare("SELECT dept, full_name FROM ct_users WHERE npk = ?");
+        $stmt->bind_param("s", $npk);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $user   = $result->fetch_assoc();
+        $stmt->close();
+
+        if ($user) {
+            $deptUser = strtolower(trim($user['dept']));
+
+            // cek di db om_im.department
+            $resDept   = $connIMOM->query("SELECT dept_name FROM department");
+            $foundDept = null;
+            while ($row = $resDept->fetch_assoc()) {
+                if (strtolower(trim($row['dept_name'])) === $deptUser) {
+                    $foundDept = $row['dept_name'];
+                    break;
+                }
+            }
+
+            if ($foundDept) {
+                $alert = [
+                    "type" => "success",
+                    "title" => "Akses Diterima",
+                    "message" => "Anda dari dept {$foundDept}. Mesin: {$machine}"
+                ];
+            } else {
+                $alert = [
+                    "type" => "error",
+                    "title" => "Dept Tidak Valid",
+                    "message" => "Dept '{$user['dept']}' tidak ada di om_im.department"
+                ];
+            }
+        } else {
+            $alert = [
+                "type" => "error",
+                "title" => "NPK Tidak Ditemukan",
+                "message" => "NPK {$npk} tidak ada di database."
+            ];
+        }
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -44,7 +90,7 @@ if ($currentPage === 'monitoring') {
       <a href="index.php?page=check_model" class="flex items-center px-3 py-2 rounded-md <?= $currentPage === 'check_model' ? 'text-red-600 font-semibold' : 'text-gray-700 hover:text-red-600' ?>">
         <i class="fa fa-magnifying-glass px-2"></i> Check Model
       </a>
-      <a href="#" 
+      <a href="#"
         onclick="openMonitoringModal(); return false;"
         class="flex items-center px-3 py-2 rounded-md <?= $currentPage === 'monitoring' ? 'text-red-600 font-semibold' : 'text-gray-700 hover:text-red-600' ?>">
         <i class="fa fa-chart-line px-2"></i> Monitoring OM/IM
@@ -77,16 +123,10 @@ if ($currentPage === 'monitoring') {
 
     <!-- Dynamic Page Content -->
     <main class="flex-1 p-6">
-     <?php
+      <?php
         switch ($currentPage) {
           case 'check_model':
             include 'check_model.php';
-            break;
-          case 'manual':
-            include 'manual_partial.php';
-            break;
-          case 'monitoring':
-            include 'monitoring_manual.php';
             break;
           case 'workstations':
             include 'workstations.php';
@@ -116,49 +156,6 @@ if ($currentPage === 'monitoring') {
     });
   </script>
   <?php endif; ?>
-
-  <!-- Modal Monitoring -->
-  <div id="monitoringModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
-      
-      <!-- Tombol Close -->
-      <button onclick="closeMonitoringModal()" class="absolute top-2 right-2 px-3 text-gray-500 hover:text-gray-700">
-        ✕
-      </button>
-
-      <h3 class="text-lg font-bold text-gray-800 mb-4">⚠ Akses Monitoring ⚠</h3>
-
-      <form id="monitoringForm" method="GET" action="index.php">
-        <input type="hidden" name="page" value="monitoring">
-
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700 mb-1">NPK</label>
-          <input type="text" name="npk" required
-            class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-red-300">
-        </div>
-
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700 mb-1">Nomor Mesin</label>
-          <select name="machine" required
-            class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-red-300">
-            <option value="">-- Pilih Mesin --</option>
-            <option value="M001">Mesin 001</option>
-            <option value="M002">Mesin 002</option>
-            <option value="M003">Mesin 003</option>
-          </select>
-        </div>
-
-        <div class="flex justify-end gap-2">
-          <button type="button" onclick="closeMonitoringModal()" class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded">
-            Batal
-          </button>
-          <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">
-            OK
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
   
   <script>
   function openMonitoringModal() {
@@ -170,6 +167,21 @@ if ($currentPage === 'monitoring') {
       document.getElementById('monitoringModal').classList.remove('flex');
   }
   </script>
+
+<?php include 'partials/monitoring_modal.php'; ?>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<?php if ($alert): ?>
+<script>
+Swal.fire({
+    icon: "<?= $alert['type'] ?>",
+    title: "<?= $alert['title'] ?>",
+    text: "<?= $alert['message'] ?>",
+    confirmButtonColor: "#d33"
+});
+</script>
+<?php endif; ?>
 
 </body>
 </html>

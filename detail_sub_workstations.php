@@ -4,10 +4,14 @@ require_once 'config.php';
 $workstation_id = (int) ($_GET['workstation_id'] ?? 0);
 $dept_id        = $_GET['dept_id'] ?? null;
 $sub_id         = (int) ($_GET['sub_id'] ?? 0);
-$type           = strtoupper($_GET['type'] ?? 'IM'); // default IM
-
-// Tentukan tabel berdasarkan type
+$type           = strtoupper($_GET['type'] ?? 'IM');
 $tableName = ($type === 'OM') ? 'data_om' : 'data_im';
+
+// Ambil data departemen
+$dept = $connIMOM->query("SELECT * FROM department WHERE id = $dept_id")->fetch_assoc();
+
+// Ambil data workstation
+$ws = $connIMOM->query("SELECT * FROM workstations WHERE id = $workstation_id")->fetch_assoc();
 
 // Ambil data sub workstation
 $stmt = $connIMOM->prepare("SELECT * FROM sub_workstations WHERE id = ?");
@@ -22,60 +26,115 @@ $stmt->bind_param("i", $sub_id);
 $stmt->execute();
 $dataRows = $stmt->get_result();
 $stmt->close();
+
+include 'partials/add_modal.php';
+include 'partials/edit_modal.php';
 ?>
 
-<h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">
-  <?= htmlspecialchars($subWs['name'] ?? 'Detail Sub Workstation') ?> - <?= $type ?>
-</h2>
+<!-- Container Utama -->
+<div class="bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden max-w-7xl mx-auto">
 
-<!-- Add Button -->
-<div class="flex justify-start mb-4">
-    <button onclick="openModal()" 
-        class="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded shadow">
-        + Tambah Data
-    </button>
-</div>
+    <!-- Header Merah + Breadcrumb -->
+    <div class="bg-red-600 px-6 py-2 shadow-md border-b border-red-700">
+        <nav class="flex items-center space-x-2 text-xs mb-2">
+            <a href="index.php?page=dashboard_home" class="text-white hover:underline font-medium">Home</a>
+            <span class="text-red-200">/</span>
+            <a href="index.php?page=workstations&dept_id=<?= $dept_id ?>" class="text-white hover:underline font-medium">
+                <?= htmlspecialchars($dept['dept_name'] ?? 'Departemen') ?>
+            </a>
+            <span class="text-red-200">/</span>
+            <a href="index.php?page=sub_workstations&workstation_id=<?= $workstation_id ?>&dept_id=<?= $dept_id ?>" class="text-white hover:underline font-medium">
+                <?= htmlspecialchars($ws['name'] ?? 'Workstation') ?>
+            </a>
+            <span class="text-red-200">/</span>
+            <span class="text-white font-semibold">
+                <?= htmlspecialchars($subWs['name'] ?? 'Detail Sub Workstation') ?> (<?= $type ?>)
+            </span>
+        </nav>
 
-<!-- Modal -->
-<div id="addModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
-        <!-- Close Button -->
-        <button onclick="closeModal()" class="absolute top-2 right-2 px-3 text-gray-500 hover:text-gray-700">
-            ✕
-        </button>
-        
-        <h3 class="text-lg font-bold text-gray-800 mb-4">Tambah Data Baru (<?= $type ?>)</h3>
-        
-        <form id="addDataForm" method="POST" action="save_data.php" enctype="multipart/form-data">
-            <input type="hidden" name="sub_workstation_id" value="<?= $sub_id ?>">
-            <input type="hidden" name="workstation_id" value="<?= $workstation_id ?>">
-            <input type="hidden" name="dept_id" value="<?= $dept_id ?>">
-            <input type="hidden" name="type" value="<?= $type ?>">
+        <h2 class="text-white text-xl font-bold tracking-wide">
+            Table Data <?= htmlspecialchars($subWs['name'] ?? '') ?> - <?= $type ?>
+        </h2>
+    </div>
 
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Part Number</label>
-                <input type="text" name="part_number" required
-                    class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-red-300">
-            </div>
+    <!-- Isi Konten -->
+    <div class="p-6 bg-gray-50">
 
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Upload File (PDF/PNG/JPG)</label>
-                <input type="file" name="uploaded_file" accept=".pdf,.png,.jpg,.jpeg" required
-                    class="w-full text-sm border px-3 py-2 rounded-lg focus:outline-none focus:ring focus:ring-red-300">
-            </div>
+        <!-- Add Button -->
+        <div class="flex justify-start mb-4">
+            <button onclick="openModal()" 
+                class="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded shadow">
+                + Tambah Data <?= htmlspecialchars($subWs['name']) ?> - <?= $type ?>
+            </button>
+        </div>
 
-            <div class="flex justify-end gap-2">
-                <button type="button" onclick="closeModal()" class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded">
-                    Batal
-                </button>
-                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
-                    Simpan
-                </button>
-            </div>
-        </form>
+        <!-- Table -->
+        <div class="overflow-x-auto bg-white shadow-md rounded-lg p-4">
+            <table id="subWsTable" class="min-w-full text-sm text-left text-gray-700 border-collapse">
+                <thead class="bg-red-600 text-gray-100 uppercase text-xs tracking-wider border-b">
+                    <tr>
+                        <th class="px-6 py-3 border">#</th>
+                        <th class="px-6 py-3 border">Part Number</th>
+                        <th class="px-6 py-3 border">File</th>
+                        <th class="px-6 py-3 border">File Name</th>
+                        <th class="px-6 py-3 border">Path File</th>
+                        <th class="px-6 py-3 border">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if ($dataRows->num_rows > 0): ?>
+                        <?php $no = 1; while ($row = $dataRows->fetch_assoc()): ?>
+                            <tr>
+                                <td class="px-6 py-3 border"><?= $no++ ?></td>
+                                <td class="px-6 py-3 border"><?= htmlspecialchars($row['part_number']) ?></td>
+                                <td class="px-6 py-3 border">
+                                    <a href="<?= htmlspecialchars($row['path_name'] . $row['file_name']) ?>" target="_blank" class="text-blue-600 hover:underline">
+                                        <?= htmlspecialchars($row['file_name']) ?>
+                                    </a>
+                                </td>
+                                <td class="px-6 py-3 border"><?= htmlspecialchars($row['file_name']) ?></td>
+                                <td class="px-6 py-3 border"><?= htmlspecialchars($row['path_name']) ?></td>
+                                <td class="px-6 py-3 border text-center">
+                                    <a href="javascript:void(0)" 
+                                        onclick="openEditModal(<?= $row['id'] ?>, '<?= htmlspecialchars($row['part_number'], ENT_QUOTES) ?>')" 
+                                        class="bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-medium px-3 py-1 rounded-full shadow">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        <?php endwhile; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                                Tidak ada data
+                            </td>
+                        </tr>
+                        <script>
+                            document.addEventListener("DOMContentLoaded", function() {
+                                Swal.fire({
+                                    icon: 'info',
+                                    title: 'Tidak ada data',
+                                    text: 'Tidak ada data pada sub workstations ini',
+                                    confirmButtonColor: '#d33'
+                                });
+                            });
+                        </script>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Tombol kembali -->
+        <div class="flex justify-end mt-6">
+            <a href="index.php?page=sub_workstations&workstation_id=<?= $workstation_id ?>&dept_id=<?= $dept_id ?>"
+               class="bg-gray-500 hover:bg-gray-600 text-white text-sm font-semibold px-4 py-2 rounded shadow">
+               ← Kembali
+            </a>
+        </div>
     </div>
 </div>
 
+<!-- Script Modal -->
 <script>
 function openModal() {
     document.getElementById('addModal').classList.remove('hidden');
@@ -85,115 +144,44 @@ function closeModal() {
     document.getElementById('addModal').classList.add('hidden');
     document.getElementById('addModal').classList.remove('flex');
 }
-</script>
+function openEditModal(id, partNumber) {
+    document.getElementById('edit_id').value = id;
+    document.getElementById('edit_part_number').value = partNumber;
 
-<!-- SweetAlert2 -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-document.getElementById('addDataForm').addEventListener('submit', function(e) {
-    e.preventDefault(); 
-    
+    document.getElementById('editModal').classList.remove('hidden');
+    document.getElementById('editModal').classList.add('flex');
+}
+function closeEditModal() {
+    document.getElementById('editModal').classList.add('hidden');
+    document.getElementById('editModal').classList.remove('flex');
+}
+
+//  Alert
+document.getElementById('editDataForm').addEventListener('submit', function(e) {
+    e.preventDefault();
     const form = this;
-    const formData = new FormData(form);
-
-    fetch('check_part_number.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.exists) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Part Number sudah ada',
-                text: 'Apakah Anda ingin mengganti file lama dengan yang baru?',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, ganti',
-                cancelButtonText: 'Tidak',
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    formData.append('replace', '1');
-                    fetch('save_data.php', {
-                        method: 'POST',
-                        body: formData
-                    }).then(() => {
-                        window.location.reload();
-                    });
-                }
-            });
-        } else {
-            fetch('save_data.php', {
-                method: 'POST',
-                body: formData
-            }).then(() => {
-                window.location.reload();
-            });
+    Swal.fire({
+        title: 'Apakah Anda yakin?',
+        text: "Data akan diubah sesuai input baru.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, ubah',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            form.submit(); // baru submit form ke update_data.php
         }
     });
 });
 </script>
 
-<!-- TABLE VIEW -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
-<div class="overflow-x-auto bg-white shadow-md rounded-lg p-4">
-    <table id="subWsTable" class="min-w-full text-sm text-left text-gray-700 border-collapse">
-        <thead class="bg-red-600 text-gray-100 uppercase text-xs tracking-wider border-b">
-            <tr>
-                <th class="px-6 py-3 border">#</th>
-                <th class="px-6 py-3 border">Part Number</th>
-                <th class="px-6 py-3 border">File</th>
-                <th class="px-6 py-3 border">File Name</th>
-                <th class="px-6 py-3 border">Path File</th>
-                <th class="px-6 py-3 border">Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php if ($dataRows->num_rows > 0): ?>
-                <?php $no = 1; while ($row = $dataRows->fetch_assoc()): ?>
-                    <tr>
-                        <td class="px-6 py-3 border"><?= $no++ ?></td>
-                        <td class="px-6 py-3 border"><?= htmlspecialchars($row['part_number']) ?></td>
-                        <td class="px-6 py-3 border">
-                            <a href="<?= htmlspecialchars($row['path_name'] . $row['file_name']) ?>" 
-                               target="_blank" 
-                               class="text-blue-600 hover:underline">
-                                <?= htmlspecialchars($row['file_name']) ?>
-                            </a>
-                        </td>
-                        <td class="px-6 py-3 border"><?= htmlspecialchars($row['file_name']) ?></td>
-                        <td class="px-6 py-3 border"><?= htmlspecialchars($row['path_name']) ?></td>
-                        <td class="px-6 py-3 border">
-                            <a href="#"
-                               class="bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-medium px-3 py-1 rounded-full shadow">
-                               Edit
-                            </a>
-                        </td>
-                    </tr>
-                <?php endwhile; ?>
-            <?php else: ?>
-                <tr>
-                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">
-                        Tidak ada data
-                    </td>
-                </tr>
-                <script>
-                    document.addEventListener("DOMContentLoaded", function() {
-                        Swal.fire({
-                            icon: 'info',
-                            title: 'Tidak ada data',
-                            text: 'Tidak ada data pada sub workstations ini',
-                            confirmButtonColor: '#d33'
-                        });
-                    });
-                </script>
-            <?php endif; ?>
-        </tbody>
-    </table>
-</div>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<!-- jQuery + DataTables -->
+<!-- DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 
@@ -218,11 +206,3 @@ document.getElementById('addDataForm').addEventListener('submit', function(e) {
     });
 </script>
 <?php endif; ?>
-
-<!-- Tombol kembali -->
-<div class="flex justify-end mt-4">
-    <a href="index.php?page=sub_workstations&workstation_id=<?= $workstation_id ?>&dept_id=<?= $dept_id ?>"
-       class="bg-gray-500 hover:bg-gray-600 text-white text-sm font-semibold px-3 py-1 rounded shadow">
-       ← Kembali
-    </a>
-</div>

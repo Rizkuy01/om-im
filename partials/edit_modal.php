@@ -19,7 +19,7 @@
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Part Number</label>
                 <input type="text" name="part_number" id="edit_part_number" required
-                    class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-red-300">
+                    class="w-full px-3 py-2 border rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed" readonly>
             </div>
 
             <div class="mb-4">

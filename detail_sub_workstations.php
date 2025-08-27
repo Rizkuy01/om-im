@@ -64,7 +64,7 @@ include 'partials/edit_modal.php';
         <div class="flex justify-start mb-4">
             <button onclick="openModal()" 
                 class="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded shadow">
-                + Tambah Data <?= htmlspecialchars($subWs['name']) ?> - <?= $type ?>
+                + Tambah Data
             </button>
         </div>
 
@@ -76,7 +76,6 @@ include 'partials/edit_modal.php';
                         <th class="px-6 py-3 border">#</th>
                         <th class="px-6 py-3 border">Part Number</th>
                         <th class="px-6 py-3 border">File</th>
-                        <th class="px-6 py-3 border">File Name</th>
                         <th class="px-6 py-3 border">Path File</th>
                         <th class="px-6 py-3 border">Action</th>
                     </tr>
@@ -92,7 +91,6 @@ include 'partials/edit_modal.php';
                                         <?= htmlspecialchars($row['file_name']) ?>
                                     </a>
                                 </td>
-                                <td class="px-6 py-3 border"><?= htmlspecialchars($row['file_name']) ?></td>
                                 <td class="px-6 py-3 border"><?= htmlspecialchars($row['path_name']) ?></td>
                                 <td class="px-6 py-3 border text-center">
                                     <a href="javascript:void(0)" 
@@ -105,7 +103,7 @@ include 'partials/edit_modal.php';
                         <?php endwhile; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                            <td colspan="5" class="px-6 py-4 text-center text-gray-500">
                                 Tidak ada data
                             </td>
                         </tr>
@@ -123,6 +121,7 @@ include 'partials/edit_modal.php';
                 </tbody>
             </table>
         </div>
+
 
         <!-- Tombol kembali -->
         <div class="flex justify-end mt-6">
@@ -171,7 +170,7 @@ document.getElementById('editDataForm').addEventListener('submit', function(e) {
         cancelButtonColor: '#3085d6'
     }).then((result) => {
         if (result.isConfirmed) {
-            form.submit(); // baru submit form ke update_data.php
+            form.submit();
         }
     });
 });
@@ -179,6 +178,16 @@ document.getElementById('editDataForm').addEventListener('submit', function(e) {
 
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<?php if (!empty($_SESSION['alert'])): ?>
+<script>
+Swal.fire({
+    icon: "<?= $_SESSION['alert']['type'] ?>",
+    title: "<?= $_SESSION['alert']['title'] ?>",
+    text: "<?= $_SESSION['alert']['message'] ?>",
+    confirmButtonColor: "#d33"
+});
+</script>
+<?php unset($_SESSION['alert']); endif; ?>
 
 <!-- DataTables -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">

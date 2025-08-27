@@ -1,69 +1,25 @@
 <?php
 session_start();
 require_once 'config.php';
+require_once 'actions/check_monitoring.php';
 
 $currentPage = $_GET['page'] ?? 'home';
 
 // halaman yang bisa diakses tanpa login
 $publicPages = ['check_model', 'monitoring'];
 
-// kalau halaman bukan public dan belum login → redirect login
 if (!in_array($currentPage, $publicPages) && !isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;
 }
 
-// ======== CEK LOGIC MONITORING ========
+// cek monitoring logic
 $alert = null;
 if ($currentPage === 'monitoring' && isset($_GET['npk'])) {
-    $npk     = $_GET['npk'] ?? '';
-    $machine = $_GET['machine'] ?? '';
-
-    if ($npk) {
-        // cek NPK di db lembur1.ct_users
-        $stmt = $connUser->prepare("SELECT dept, full_name FROM ct_users WHERE npk = ?");
-        $stmt->bind_param("s", $npk);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $user   = $result->fetch_assoc();
-        $stmt->close();
-
-        if ($user) {
-            $deptUser = strtolower(trim($user['dept']));
-
-            // cek di db om_im.department
-            $resDept   = $connIMOM->query("SELECT dept_name FROM department");
-            $foundDept = null;
-            while ($row = $resDept->fetch_assoc()) {
-                if (strtolower(trim($row['dept_name'])) === $deptUser) {
-                    $foundDept = $row['dept_name'];
-                    break;
-                }
-            }
-
-            if ($foundDept) {
-                $alert = [
-                    "type" => "success",
-                    "title" => "Akses Diterima",
-                    "message" => "Anda dari dept {$foundDept}. Mesin: {$machine}"
-                ];
-            } else {
-                $alert = [
-                    "type" => "error",
-                    "title" => "Dept Tidak Valid",
-                    "message" => "Dept '{$user['dept']}' tidak ada di om_im.department"
-                ];
-            }
-        } else {
-            $alert = [
-                "type" => "error",
-                "title" => "NPK Tidak Ditemukan",
-                "message" => "NPK {$npk} tidak ada di database."
-            ];
-        }
-    }
+    $alert = checkMonitoringAccess($connUser, $connIMOM, $_GET['npk'], $_GET['machine'] ?? '');
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -81,7 +37,7 @@ if ($currentPage === 'monitoring' && isset($_GET['npk'])) {
   <!-- SIDEBAR -->
   <aside class="w-64 bg-white shadow-md flex flex-col">
     <div class="px-6 py-5 border-b">
-      <img src="assets/kyb.png" alt="Logo" class="w-28 mx-auto">
+      <img src="assets/kyb.png" alt="KYB Logo" class="w-28 mx-auto">
     </div>
     <nav class="flex-1 px-4 py-6 space-y-2">
       <a href="index.php?page=home" class="flex items-center px-3 py-2 rounded-md <?= $currentPage === 'home' ? 'text-red-600 font-semibold' : 'text-gray-700 hover:text-red-600' ?>">
@@ -115,7 +71,7 @@ if ($currentPage === 'monitoring' && isset($_GET['npk'])) {
             </div>
           </button>
           <div id="profileMenu" class="hidden absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md border">
-            <a href="logout.php" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Logout</a>
+            <a href="actions/logout.php" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Logout</a>
           </div>
         </div>
       </header>
@@ -134,7 +90,7 @@ if ($currentPage === 'monitoring' && isset($_GET['npk'])) {
           case 'sub_workstations':
             include 'sub_workstations.php';
             break;
-          case 'detail_sub_workstations':
+          case 'detail_sub_workstations':  
             include 'detail_sub_workstations.php';
             break;
           default:

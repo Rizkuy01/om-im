@@ -6,7 +6,7 @@
                 <button onclick="closeModal()" class="absolute top-2 right-2 px-3 text-gray-500 hover:text-gray-700">
                     ✕
                 </button>
-                <h3 class="text-lg font-bold text-gray-800 mb-4">Tambah Data Baru (<?= $type ?>)</h3>
+                <h3 class="text-lg font-bold text-gray-800 mb-4">Tambah Data <?= htmlspecialchars($subWs['name']) ?> - <?= $type ?></h3>
 
                 <form id="addDataForm" method="POST" action="save_data.php" enctype="multipart/form-data">
                     <input type="hidden" name="sub_workstation_id" value="<?= $sub_id ?>">

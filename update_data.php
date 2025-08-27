@@ -2,15 +2,14 @@
 require_once 'config.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id               = (int) ($_POST['id'] ?? 0); // id data di table data_im/data_om
+    $id                 = (int) ($_POST['id'] ?? 0);
     $sub_workstation_id = (int) ($_POST['sub_workstation_id'] ?? 0);
-    $workstation_id   = (int) ($_POST['workstation_id'] ?? 0);
-    $dept_id          = (int) ($_POST['dept_id'] ?? 0);
-    $part_number      = trim($_POST['part_number'] ?? '');
-    $type             = strtoupper($_POST['type'] ?? 'IM');
-    $uploaded         = $_FILES['uploaded_file'] ?? null;
+    $workstation_id     = (int) ($_POST['workstation_id'] ?? 0);
+    $dept_id            = (int) ($_POST['dept_id'] ?? 0);
+    $part_number        = trim($_POST['part_number'] ?? '');
+    $type               = strtoupper($_POST['type'] ?? 'IM');
+    $uploaded           = $_FILES['uploaded_file'] ?? null;
 
-    // tentukan tabel sesuai type
     $tableName = ($type === 'OM') ? 'data_om' : 'data_im';
     $suffix    = ($type === 'OM') ? '-OM' : '-IM';
 
@@ -28,13 +27,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $subName = $subQ->get_result()->fetch_assoc()['name'] ?? "SubWS";
         $subQ->close();
 
-        // buat folder Dept/SubWS/
         $basePath = "uploads/$deptName/$subName/";
         if (!is_dir($basePath)) {
             mkdir($basePath, 0777, true);
         }
 
-        // jika ada file baru diupload
+        // ambil data lama untuk hapus file
+        $oldQ = $connIMOM->prepare("SELECT file_name, path_name FROM {$tableName} WHERE id = ?");
+        $oldQ->bind_param("i", $id);
+        $oldQ->execute();
+        $oldData = $oldQ->get_result()->fetch_assoc();
+        $oldQ->close();
+
         if ($uploaded && $uploaded['error'] === UPLOAD_ERR_OK) {
             $file_ext = strtolower(pathinfo($uploaded['name'], PATHINFO_EXTENSION));
             $allowed_ext = ['pdf', 'png', 'jpg', 'jpeg'];
@@ -46,23 +50,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $newFileName = $part_number . $suffix . "." . $file_ext;
             $targetFile  = $basePath . $newFileName;
 
+            // hapus file lama
+            if (!empty($oldData['file_name'])) {
+                $oldFile = $oldData['path_name'] . $oldData['file_name'];
+                if (file_exists($oldFile)) {
+                    unlink($oldFile);
+                }
+            }
+
             if (move_uploaded_file($uploaded['tmp_name'], $targetFile)) {
-                // update dengan file baru
                 $stmt = $connIMOM->prepare("UPDATE {$tableName} 
-                                            SET part_number=?, file_name=?, path_name=? 
-                                            WHERE id=?");
-                $stmt->bind_param("sssi", $part_number, $newFileName, $basePath, $id);
+                    SET file_name=?, path_name=? 
+                    WHERE id=?");
+                $stmt->bind_param("ssi", $newFileName, $basePath, $id);
                 $stmt->execute();
                 $stmt->close();
             } else {
-                die("Gagal upload file.");
+                die("Gagal upload file baru.");
             }
-        } else {
-            // update hanya part_number tanpa ubah file
-            $stmt = $connIMOM->prepare("UPDATE {$tableName} SET part_number=? WHERE id=?");
-            $stmt->bind_param("si", $part_number, $id);
-            $stmt->execute();
-            $stmt->close();
         }
 
         header("Location: index.php?page=detail_sub_workstations&sub_id={$sub_workstation_id}&workstation_id={$workstation_id}&dept_id={$dept_id}&type={$type}");

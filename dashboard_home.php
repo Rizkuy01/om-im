@@ -37,6 +37,7 @@ $gradients = [
             <?php 
             $i = 0;
             while($dept = $result->fetch_assoc()): 
+                if (strtoupper($dept['dept_name']) === 'MIS') continue;
                 $gradient = $gradients[$i % count($gradients)];
                 $i++;
             ?>
@@ -57,7 +58,7 @@ $gradients = [
                         <?= htmlspecialchars($dept['dept_name']) ?>
                     </h3>
 
-                    <!-- Button (opsional, bisa dihapus kalau mau seluruh card saja yang aktif) -->
+                    <!-- Button -->
                     <a href="index.php?page=workstations&dept_id=<?= $dept['id'] ?>" 
                     class="relative z-10 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-4 py-1 rounded-full shadow-md transition-all duration-300">
                         Lihat

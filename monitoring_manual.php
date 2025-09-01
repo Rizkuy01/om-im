@@ -19,7 +19,7 @@ if ($row = $result->fetch_assoc()) {
     $id = $row['Model_no'];
     $cleanId = rtrim($id, '-');
     $modelCode = $row['Model'];
-    $line = $row['Line']; // langsung ambil, tanpa pembatasan
+    $line = $row['Line']; 
 
     $baseDir = "manual_images/$line";
     $imgIMPath = $baseDir . "/" . $cleanId . "-IM.jpg";

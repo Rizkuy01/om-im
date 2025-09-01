@@ -21,6 +21,9 @@ $stmt->bind_param("i", $workstation_id);
 $stmt->execute();
 $subs = $stmt->get_result();
 $stmt->close();
+
+// cek apakah user production
+$isProduction = (isset($_SESSION['dept']) && stripos($_SESSION['dept'], 'PRODUCTION') !== false);
 ?>
 
 <!-- Container Utama -->
@@ -54,14 +57,25 @@ $stmt->close();
                             <?= htmlspecialchars($row['name']) ?>
                         </h3>
 
-                        <!-- Dua Button: IM & OM -->
+                        <!-- Button -->
                         <div class="flex gap-2">
-                            <a href="index.php?page=detail_sub_workstations&type=IM&workstation_id=<?= $workstation_id ?>&dept_id=<?= $dept_id ?>&sub_id=<?= $row['id'] ?>" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-3 py-2 rounded shadow-md text-center transition-all duration-300">
-                                IM
-                            </a>
-                            <a href="index.php?page=detail_sub_workstations&type=OM&workstation_id=<?= $workstation_id ?>&dept_id=<?= $dept_id ?>&sub_id=<?= $row['id'] ?>" class="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs font-medium px-3 py-2 rounded shadow-md text-center transition-all duration-300">
-                                OM
-                            </a>
+                            <?php if ($isProduction): ?>
+                                <!-- Production: hanya OM -->
+                                <a href="index.php?page=detail_sub_workstations&type=OM&workstation_id=<?= $workstation_id ?>&dept_id=<?= $dept_id ?>&sub_id=<?= $row['id'] ?>" 
+                                   class="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs font-medium px-3 py-2 rounded shadow-md text-center transition-all duration-300">
+                                    OM
+                                </a>
+                            <?php else: ?>
+                                <!-- QA/MIS: IM + OM -->
+                                <a href="index.php?page=detail_sub_workstations&type=IM&workstation_id=<?= $workstation_id ?>&dept_id=<?= $dept_id ?>&sub_id=<?= $row['id'] ?>" 
+                                   class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-3 py-2 rounded shadow-md text-center transition-all duration-300">
+                                    IM
+                                </a>
+                                <a href="index.php?page=detail_sub_workstations&type=OM&workstation_id=<?= $workstation_id ?>&dept_id=<?= $dept_id ?>&sub_id=<?= $row['id'] ?>" 
+                                   class="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs font-medium px-3 py-2 rounded shadow-md text-center transition-all duration-300">
+                                    OM
+                                </a>
+                            <?php endif; ?>
                         </div>
                     </div>
                 <?php endwhile; ?>

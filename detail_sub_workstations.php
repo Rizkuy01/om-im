@@ -27,6 +27,23 @@ $stmt->execute();
 $dataRows = $stmt->get_result();
 $stmt->close();
 
+// cek jumlah subworkstations untuk workstation ini
+$stmt = $connIMOM->prepare("SELECT COUNT(*) as cnt FROM sub_workstations WHERE workstation_id = ?");
+$stmt->bind_param("i", $workstation_id);
+$stmt->execute();
+$countRes = $stmt->get_result()->fetch_assoc();
+$stmt->close();
+
+$subCount = $countRes['cnt'] ?? 0;
+$isProduction = (isset($_SESSION['dept']) && stripos($_SESSION['dept'], 'PRODUCTION') !== false);
+
+// tentukan back link
+if ($isProduction && $subCount == 1) {
+    $backLink = "index.php?page=workstations&dept_id=" . $dept_id;
+} else {
+    $backLink = "index.php?page=sub_workstations&workstation_id=" . $workstation_id . "&dept_id=" . $dept_id;
+}
+
 include 'partials/add_modal.php';
 include 'partials/edit_modal.php';
 ?>
@@ -125,7 +142,7 @@ include 'partials/edit_modal.php';
 
         <!-- Tombol kembali -->
         <div class="flex justify-end mt-6">
-            <a href="index.php?page=sub_workstations&workstation_id=<?= $workstation_id ?>&dept_id=<?= $dept_id ?>"
+            <a href="<?= $backLink ?>"
                class="bg-gray-500 hover:bg-gray-600 text-white text-sm font-semibold px-4 py-2 rounded shadow">
                ← Kembali
             </a>

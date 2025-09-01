@@ -16,44 +16,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['npk'], $_POST['passwo
     if (!isset($_SESSION['captcha']) || strcasecmp($_SESSION['captcha'], $captcha) !== 0) {
         $error = 'Captcha salah!';
     } else {
-        $stmt = $connUser->prepare("
-            SELECT * FROM ct_users 
-            WHERE npk = ? 
-              AND dept IN ('QA', 'MIS') 
-            LIMIT 1
-        ");
+        // get user
+        $stmt = $connUser->prepare("SELECT * FROM ct_users WHERE npk = ? LIMIT 1");
         $stmt->bind_param("s", $npk);
         $stmt->execute();
         $result = $stmt->get_result();
-        $user = $result->fetch_assoc();
+        $user   = $result->fetch_assoc();
+        $stmt->close();
 
-        if ($user) {
-            if (password_verify($password, $user['pwd'])) {
-                // generate OTP
-                $otp = rand(100000, 999999);
+        if ($user && password_verify($password, $user['pwd'])) {
+            // normalisasi
+            $deptClean = ucwords(strtolower(trim($user['dept'])));
 
-                // simpan sementara (belum login penuh)
+            // cek db om_im.department
+            $stmtDept = $connIMOM->prepare("SELECT id, dept_name FROM department WHERE LOWER(dept_name) = LOWER(?) LIMIT 1");
+            $stmtDept->bind_param("s", $deptClean);
+            $stmtDept->execute();
+            $resDept  = $stmtDept->get_result();
+            $rowDept  = $resDept->fetch_assoc();
+            $stmtDept->close();
+
+            if ($rowDept) {
+                $deptId   = $rowDept['id'];
+                $deptName = $rowDept['dept_name'];
+
                 $_SESSION['pending_user'] = [
                     'npk'      => $user['npk'],
                     'username' => $user['full_name'],
-                    'dept'     => $user['dept'],
-                    'otp'      => $otp
+                    'dept'     => $deptName,
+                    'dept_id'  => $deptId
                 ];
+                unset($_SESSION['captcha']);
 
-                unset($_SESSION['captcha']); // reset captcha setelah berhasil
+                if ($deptName === 'QA' || $deptName === 'MIS' || stripos($deptName, 'Production') === 0) {
+                  // generate OTP
+                  $_SESSION['pending_user']['otp'] = rand(100000, 999999);
 
-                // redirect ke verifikasi OTP
-                header("Location: verify_otp.php");
-                exit;
+                  // mapping sessions
+                  if (stripos($deptName, 'Production') === 0) {
+                      $_SESSION['pending_user']['redirect_after_otp'] = "index.php?page=workstations&dept_id=" . $deptId;
+                  } else {
+                      $_SESSION['pending_user']['redirect_after_otp'] = "index.php?page=dashboard_home";
+                  }
+
+                  header("Location: verify_otp.php");
+                  exit;
+              } else {
+                  $error = "Akses untuk departemen {$deptName} belum diatur.";
+              }
+
             } else {
-                $error = 'Password salah!';
+                $error = "Dept {$user['dept']} tidak ditemukan di database.";
             }
         } else {
-            $error = 'NPK tidak ditemukan atau Anda bukan dari departemen QA!';
+            $error = 'NPK atau Password salah!';
         }
-        $stmt->close();
     }
 }
+
+
 
 // === MONITORING LOGIC ===
 if (isset($_GET['page']) && $_GET['page'] === 'monitoring' && isset($_GET['npk'])) {

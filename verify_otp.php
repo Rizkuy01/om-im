@@ -9,19 +9,25 @@ if (!isset($_SESSION['pending_user'])) {
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['otp'])) {
     if ($_POST['otp'] === (string)$_SESSION['pending_user']['otp']) {
-        // OTP benar → set session login penuh
+        // Set Session
         $_SESSION['user_id']   = $_SESSION['pending_user']['npk'];
         $_SESSION['username']  = $_SESSION['pending_user']['username'];
         $_SESSION['dept']      = $_SESSION['pending_user']['dept'];
+        $_SESSION['dept_id']   = $_SESSION['pending_user']['dept_id'];
+
+        // redirect
+        $redirect = $_SESSION['pending_user']['redirect_after_otp'] ?? 'index.php?page=dashboard_home';
+
         unset($_SESSION['pending_user']);
 
-        header("Location: index.php");
+        header("Location: " . $redirect);
         exit;
     } else {
         $error = 'OTP salah!';
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>

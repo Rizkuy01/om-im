@@ -13,6 +13,15 @@ if (!in_array($currentPage, $publicPages) && !isset($_SESSION['user_id'])) {
     exit;
 }
 
+// ===== FILTER ROLE=====
+if ($currentPage === 'home') {
+    if (isset($_SESSION['dept']) && !in_array($_SESSION['dept'], ['QA', 'MIS'])) {
+        // redirect sesuai dept
+        header("Location: index.php?page=workstations&dept_id=" . $_SESSION['dept_id']);
+        exit;
+    }
+}
+
 // cek monitoring logic
 $alert = null;
 if ($currentPage === 'monitoring' && isset($_GET['npk'])) {

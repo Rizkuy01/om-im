@@ -144,6 +144,12 @@ Swal.fire({
     title: "<?= $alert['title'] ?>",
     text: "<?= $alert['message'] ?>",
     confirmButtonColor: "#d33"
+}).then((result) => {
+    <?php if (!empty($alert['redirect'])): ?>
+        if (result.isConfirmed) {
+            window.location.href = "<?= $alert['redirect'] ?>";
+        }
+    <?php endif; ?>
 });
 </script>
 <?php endif; ?>

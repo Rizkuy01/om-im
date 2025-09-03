@@ -61,6 +61,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const npk = npkInput.value.trim();
     if (!npk) return;
 
+    machineSelect.innerHTML = '<option value="">Loading...</option>';
+
     fetch("getMachines.php?npk=" + encodeURIComponent(npk))
       .then(res => res.json())
       .then(data => {

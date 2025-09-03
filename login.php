@@ -49,21 +49,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['npk'], $_POST['passwo
                 unset($_SESSION['captcha']);
 
                 if ($deptName === 'QA' || $deptName === 'MIS' || stripos($deptName, 'Production') === 0) {
-                  // generate OTP
-                  $_SESSION['pending_user']['otp'] = rand(100000, 999999);
+                    // generate OTP
+                    $_SESSION['pending_user']['otp'] = rand(100000, 999999);
 
-                  // mapping sessions
-                  if (stripos($deptName, 'Production') === 0) {
-                      $_SESSION['pending_user']['redirect_after_otp'] = "index.php?page=workstations&dept_id=" . $deptId;
-                  } else {
-                      $_SESSION['pending_user']['redirect_after_otp'] = "index.php?page=dashboard_home";
-                  }
+                    // mapping sessions
+                    if (stripos($deptName, 'Production') === 0) {
+                        $_SESSION['pending_user']['redirect_after_otp'] = "index.php?page=workstations&dept_id=" . $deptId;
+                    } else {
+                        $_SESSION['pending_user']['redirect_after_otp'] = "index.php?page=dashboard_home";
+                    }
 
-                  header("Location: verify_otp.php");
-                  exit;
-              } else {
-                  $error = "Akses untuk departemen {$deptName} belum diatur.";
-              }
+                    header("Location: verify_otp.php");
+                    exit;
+                } else {
+                    $error = "Akses untuk departemen {$deptName} belum diatur.";
+                }
 
             } else {
                 $error = "Dept {$user['dept']} tidak ditemukan di database.";
@@ -74,14 +74,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['npk'], $_POST['passwo
     }
 }
 
-
-
 // === MONITORING LOGIC ===
 if (isset($_GET['page']) && $_GET['page'] === 'monitoring' && isset($_GET['npk'])) {
     $alert = checkMonitoringAccess($connUser, $connIMOM, $_GET['npk'], $_GET['machine'] ?? '');
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -130,7 +127,7 @@ if (isset($_GET['page']) && $_GET['page'] === 'monitoring' && isset($_GET['npk']
       </button>
     </form>
 
-    <!-- Tombol akses langsung -->
+    <!-- Button Monitoring -->
     <div class="grid grid-cols-2 gap-3 mt-3">
       <button type="button" onclick="window.location.href='index.php?page=check_model'"
         class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-md transition duration-300">
@@ -145,6 +142,47 @@ if (isset($_GET['page']) && $_GET['page'] === 'monitoring' && isset($_GET['npk']
 
 <?php include 'partials/monitoring_modal.php'; ?>
 
+<!-- jQuery Ajax -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+function openMonitoringModal() {
+    document.getElementById('monitoringModal').classList.remove('hidden');
+    document.getElementById('monitoringModal').classList.add('flex');
+}
+function closeMonitoringModal() {
+    document.getElementById('monitoringModal').classList.add('hidden');
+    document.getElementById('monitoringModal').classList.remove('flex');
+}
+
+// === AJAX untuk mesin berdasarkan NPK ===
+$(document).ready(function () {
+    const npkInput = $("#monitoringForm input[name='npk']");
+    const machineSelect = $("#monitoringForm select[name='machine']");
+
+    npkInput.on("blur", function () {
+        const npk = npkInput.val().trim();
+        if (!npk) return;
+
+        machineSelect.html('<option value="">Loading...</option>');
+
+        $.get("getMachines.php", { npk: npk }, function (data) {
+            machineSelect.html('<option value="">-- Pilih Mesin --</option>');
+            if (data.machines && data.machines.length > 0) {
+                data.machines.forEach(function (m) {
+                    machineSelect.append(new Option(m.name, m.id));
+                });
+            } else {
+                machineSelect.html('<option value="">(Tidak ada mesin)</option>');
+            }
+        }, "json")
+        .fail(function () {
+            machineSelect.html('<option value="">Error mengambil data</option>');
+        });
+    });
+});
+</script>
+
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <?php if ($alert): ?>
@@ -154,6 +192,12 @@ Swal.fire({
     title: "<?= $alert['title'] ?>",
     text: "<?= $alert['message'] ?>",
     confirmButtonColor: "#d33"
+}).then((result) => {
+    <?php if (!empty($alert['redirect'])): ?>
+        if (result.isConfirmed) {
+            window.location.href = "<?= $alert['redirect'] ?>";
+        }
+    <?php endif; ?>
 });
 </script>
 <?php endif; ?>

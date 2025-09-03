@@ -1,51 +1,88 @@
 <?php
-// monitoring_check.php
-function checkMonitoringAccess($connUser, $connIMOM, $npk, $machine) {
-    $alert = null;
+function checkMonitoringAccess($connUser, $connIMOM, $npk, $machineId) {
+    // Ambil user dari lembur1.ct_users
+    $stmt = $connUser->prepare("SELECT dept FROM ct_users WHERE npk = ? LIMIT 1");
+    $stmt->bind_param("s", $npk);
+    $stmt->execute();
+    $resUser = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
 
-    if ($npk) {
-        // cek NPK di db lembur1.ct_users
-        $stmt = $connUser->prepare("SELECT dept, full_name FROM ct_users WHERE npk = ?");
-        $stmt->bind_param("s", $npk);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $user   = $result->fetch_assoc();
-        $stmt->close();
-
-        if ($user) {
-            $deptUser = strtolower(trim($user['dept']));
-
-            // cek di db om_im.department
-            $resDept   = $connIMOM->query("SELECT dept_name FROM department");
-            $foundDept = null;
-            while ($row = $resDept->fetch_assoc()) {
-                if (strtolower(trim($row['dept_name'])) === $deptUser) {
-                    $foundDept = $row['dept_name'];
-                    break;
-                }
-            }
-
-            if ($foundDept) {
-                $alert = [
-                    "type" => "success",
-                    "title" => "Akses Diterima",
-                    "message" => "Monitoring mesin: {$machine}, Dept: {$foundDept}"
-                ];
-            } else {
-                $alert = [
-                    "type" => "error",
-                    "title" => "Dept Tidak Valid",
-                    "message" => "Dept {$user['dept']} tidak memiliki akses monitoring"
-                ];
-            }
-        } else {
-            $alert = [
-                "type" => "error",
-                "title" => "NPK Tidak Ditemukan",
-                "message" => "NPK {$npk} tidak ada di database."
-            ];
-        }
+    if (!$resUser) {
+        return [
+            'type' => 'error',
+            'title' => 'Akses Ditolak',
+            'message' => "NPK {$npk} tidak ditemukan."
+        ];
     }
 
-    return $alert;
+    $deptUser = ucwords(strtolower(trim($resUser['dept'])));
+
+    // Cari dept di om_im.department
+    $stmt = $connIMOM->prepare("SELECT id, dept_name FROM department WHERE LOWER(dept_name) = LOWER(?) LIMIT 1");
+    $stmt->bind_param("s", $deptUser);
+    $stmt->execute();
+    $rowDept = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    if (!$rowDept) {
+        return [
+            'type' => 'error',
+            'title' => 'Akses Ditolak',
+            'message' => "Dept {$deptUser} tidak terdaftar di sistem OM/IM."
+        ];
+    }
+
+    $deptId   = $rowDept['id'];
+    $deptName = $rowDept['dept_name'];
+
+    // ambil sub_workstation berdasarkan ID 
+    $stmt = $connIMOM->prepare("SELECT id, name FROM sub_workstations WHERE id = ? LIMIT 1");
+    $stmt->bind_param("i", $machineId);
+    $stmt->execute();
+    $rowSub = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+    
+    if (!$rowSub) {
+        return [
+            'type' => 'error',
+            'title' => 'Akses Ditolak',
+            'message' => "Mesin dengan ID {$machineId} tidak ditemukan."
+        ];
+    }
+    
+    $subWsId   = $rowSub['id'];
+    $subWsName = $rowSub['name'];
+
+    // Ambil OM terbaru
+    $stmt = $connIMOM->prepare("SELECT * FROM data_om WHERE sub_workstation_id = ? ORDER BY id DESC LIMIT 1");
+    $stmt->bind_param("i", $subWsId);
+    $stmt->execute();
+    $lastOM = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    // Ambil IM terbaru
+    $lastIM = null;
+    if (in_array($deptName, ['QA','MIS'])) {
+        $stmt = $connIMOM->prepare("SELECT * FROM data_im WHERE sub_workstation_id = ? ORDER BY id DESC LIMIT 1");
+        $stmt->bind_param("i", $subWsId);
+        $stmt->execute();
+        $lastIM = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+    }
+
+    if (!$lastOM && !$lastIM) {
+        return [
+            'type' => 'error',
+            'title' => 'Data Kosong',
+            'message' => "Belum ada file OM/IM terbaru untuk mesin {$subWsName}."
+        ];
+    }
+
+    // redirect ke monitoring_detail.php
+    return [
+        'type' => 'success',
+        'title' => 'Akses Diterima',
+        'message' => "Menampilkan file terbaru untuk mesin {$subWsName}.",
+        'redirect' => "monitoring_detail.php?npk={$npk}&machine=" . urlencode($subWsName)
+    ];
 }

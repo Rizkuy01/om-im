@@ -1,6 +1,9 @@
 <?php
 require_once 'config.php';
 
+$errorMessage = null;
+$redirectUrl  = "index.php";
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id                 = (int) ($_POST['id'] ?? 0);
     $sub_workstation_id = (int) ($_POST['sub_workstation_id'] ?? 0);
@@ -44,36 +47,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $allowed_ext = ['pdf', 'png', 'jpg', 'jpeg'];
 
             if (!in_array($file_ext, $allowed_ext)) {
-                die("Format file tidak diizinkan.");
-            }
-
-            $newFileName = $part_number . $suffix . "." . $file_ext;
-            $targetFile  = $basePath . $newFileName;
-
-            // hapus file lama
-            if (!empty($oldData['file_name'])) {
-                $oldFile = $oldData['path_name'] . $oldData['file_name'];
-                if (file_exists($oldFile)) {
-                    unlink($oldFile);
-                }
-            }
-
-            if (move_uploaded_file($uploaded['tmp_name'], $targetFile)) {
-                $stmt = $connIMOM->prepare("UPDATE {$tableName} 
-                    SET file_name=?, path_name=? 
-                    WHERE id=?");
-                $stmt->bind_param("ssi", $newFileName, $basePath, $id);
-                $stmt->execute();
-                $stmt->close();
+                $errorMessage = "Format file tidak diizinkan.";
             } else {
-                die("Gagal upload file baru.");
+                $newFileName = $part_number . $suffix . "." . $file_ext;
+                $targetFile  = $basePath . $newFileName;
+
+                // hapus file lama
+                if (!empty($oldData['file_name'])) {
+                    $oldFile = $oldData['path_name'] . $oldData['file_name'];
+                    if (file_exists($oldFile)) {
+                        unlink($oldFile);
+                    }
+                }
+
+                if (move_uploaded_file($uploaded['tmp_name'], $targetFile)) {
+                    $stmt = $connIMOM->prepare("UPDATE {$tableName} 
+                        SET file_name=?, path_name=? 
+                        WHERE id=?");
+                    $stmt->bind_param("ssi", $newFileName, $basePath, $id);
+                    $stmt->execute();
+                    $stmt->close();
+                } else {
+                    $errorMessage = "Gagal upload file baru.";
+                }
             }
         }
 
-        header("Location: index.php?page=detail_sub_workstations&sub_id={$sub_workstation_id}&workstation_id={$workstation_id}&dept_id={$dept_id}&type={$type}");
-        exit;
+        // jika tidak ada error, redirect normal
+        if (!$errorMessage) {
+            header("Location: index.php?page=detail_sub_workstations&sub_id={$sub_workstation_id}&workstation_id={$workstation_id}&dept_id={$dept_id}&type={$type}");
+            exit;
+        } else {
+            $redirectUrl = "index.php?page=detail_sub_workstations&sub_id={$sub_workstation_id}&workstation_id={$workstation_id}&dept_id={$dept_id}&type={$type}";
+        }
     } else {
-        die("Data tidak lengkap!");
+        $errorMessage = "Data tidak lengkap!";
     }
 }
 ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Error Upload</title>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+<?php if ($errorMessage): ?>
+<script>
+Swal.fire({
+    icon: 'error',
+    title: 'Upload Gagal',
+    text: '<?= addslashes($errorMessage) ?>',
+    confirmButtonColor: '#d33'
+}).then(() => {
+    window.location.href = "<?= $redirectUrl ?>";
+});
+</script>
+<?php endif; ?>
+</body>
+</html>

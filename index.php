@@ -5,7 +5,6 @@ require_once 'actions/check_monitoring.php';
 
 $currentPage = $_GET['page'] ?? 'home';
 
-// halaman yang bisa diakses tanpa login
 $publicPages = ['check_model', 'monitoring'];
 
 if (!in_array($currentPage, $publicPages) && !isset($_SESSION['user_id'])) {

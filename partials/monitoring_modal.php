@@ -42,7 +42,6 @@
 </div>
 
 <script>
-// Buka & Tutup Modal
 function openMonitoringModal() {
     document.getElementById('monitoringModal').classList.remove('hidden');
     document.getElementById('monitoringModal').classList.add('flex');

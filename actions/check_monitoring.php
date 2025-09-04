@@ -32,7 +32,7 @@ function checkMonitoringAccess($connUser, $connIMOM, $npk, $machineId) {
         ];
     }
 
-    $deptId   = $rowDept['id'];
+    // $deptId   = $rowDept['id'];
     $deptName = $rowDept['dept_name'];
 
     // ambil sub_workstation berdasarkan ID 

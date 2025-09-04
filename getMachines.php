@@ -18,7 +18,7 @@ if ($npk) {
     if ($user) {
         $dept = $user['dept'];
 
-        // Cari dept_id di om_im pakai LIKE (ignore case + spasi)
+        //  dept_id.om_im, cocokkan data departemen
         $stmt = $connIMOM->prepare("SELECT id FROM department WHERE LOWER(dept_name) LIKE CONCAT('%', LOWER(?), '%') LIMIT 1");
         $stmt->bind_param("s", $dept);
         $stmt->execute();

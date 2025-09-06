@@ -32,9 +32,9 @@ $isProduction = (isset($_SESSION['dept']) && stripos($_SESSION['dept'], 'PRODUCT
     <!-- Header Merah + Breadcrumb -->
     <div class="bg-red-600 px-6 py-2 shadow-md border-b border-red-700">
         <nav class="flex items-center space-x-2 text-xs mb-2">
-            <a href="index.php?page=dashboard_home" class="text-white hover:underline font-medium">Home</a>
+            <a class="text-white hover:underline font-medium">Home</a>
             <span class="text-red-200">/</span>
-            <a href="index.php?page=workstations&dept_id=<?= $dept_id ?>" class="text-white hover:underline font-medium">
+            <a class="text-white hover:underline font-medium">
                 <?= htmlspecialchars($dept['dept_name'] ?? 'Departemen') ?>
             </a>
             <span class="text-red-200">/</span>

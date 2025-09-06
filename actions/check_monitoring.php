@@ -1,5 +1,5 @@
 <?php
-function checkMonitoringAccess($connUser, $connIMOM, $npk, $machineId) {
+function checkMonitoringAccess($connUser, $connIMOM, $npk, $machine) {
     // Ambil user dari lembur1.ct_users
     $stmt = $connUser->prepare("SELECT dept FROM ct_users WHERE npk = ? LIMIT 1");
     $stmt->bind_param("s", $npk);
@@ -12,12 +12,12 @@ function checkMonitoringAccess($connUser, $connIMOM, $npk, $machineId) {
             'type' => 'error',
             'title' => 'Akses Ditolak',
             'message' => "NPK {$npk} tidak ditemukan."
-        ];
+        ];  
     }
 
     $deptUser = ucwords(strtolower(trim($resUser['dept'])));
 
-    // Cari dept di om_im.department
+    // Normalisasi dept ke om_im.department
     $stmt = $connIMOM->prepare("SELECT id, dept_name FROM department WHERE LOWER(dept_name) = LOWER(?) LIMIT 1");
     $stmt->bind_param("s", $deptUser);
     $stmt->execute();
@@ -28,42 +28,51 @@ function checkMonitoringAccess($connUser, $connIMOM, $npk, $machineId) {
         return [
             'type' => 'error',
             'title' => 'Akses Ditolak',
-            'message' => "Dept {$deptUser} tidak terdaftar di sistem OM/IM."
+            'message' => "Dept {$deptUser} tidak terdaftar di sistem OM/IM.",
+            'redirect' => "login.php"
         ];
     }
 
-    // $deptId   = $rowDept['id'];
     $deptName = $rowDept['dept_name'];
 
-    // ambil sub_workstation berdasarkan ID 
-    $stmt = $connIMOM->prepare("SELECT id, name FROM sub_workstations WHERE id = ? LIMIT 1");
-    $stmt->bind_param("i", $machineId);
+    // get sub_workstation by ID atau by NAME 
+    $subWs = null;
+    if (ctype_digit((string)$machine)) {
+        $machineId = (int)$machine;
+        $stmt = $connIMOM->prepare("SELECT id, name FROM sub_workstations WHERE id = ? LIMIT 1");
+        $stmt->bind_param("i", $machineId);
+    } else {
+        $machineName = trim($machine);
+        $stmt = $connIMOM->prepare("SELECT id, name FROM sub_workstations WHERE LOWER(name) = LOWER(?) LIMIT 1");
+        $stmt->bind_param("s", $machineName);
+    }
     $stmt->execute();
-    $rowSub = $stmt->get_result()->fetch_assoc();
+    $subWs = $stmt->get_result()->fetch_assoc();
     $stmt->close();
-    
-    if (!$rowSub) {
+
+    if (!$subWs) {
         return [
             'type' => 'error',
             'title' => 'Akses Ditolak',
-            'message' => "Mesin dengan ID {$machineId} tidak ditemukan."
+            'message' => "Mesin ".htmlspecialchars($machine)." tidak ditemukan.",
+            'redirect' => "index.php?page=workstations&dept_id=" . $rowDept['id']
         ];
     }
-    
-    $subWsId   = $rowSub['id'];
-    $subWsName = $rowSub['name'];
 
-    // Ambil OM terbaru
-    $stmt = $connIMOM->prepare("SELECT * FROM data_om WHERE sub_workstation_id = ? ORDER BY id DESC LIMIT 1");
+    $subWsId   = (int)$subWs['id'];
+    $subWsName = $subWs['name'];
+
+    // 4) Ambil OM terbaru (Production)
+    $stmt = $connIMOM->prepare("SELECT id FROM data_om WHERE sub_workstation_id = ? ORDER BY id DESC LIMIT 1");
     $stmt->bind_param("i", $subWsId);
     $stmt->execute();
     $lastOM = $stmt->get_result()->fetch_assoc();
     $stmt->close();
 
-    // Ambil IM terbaru
+    // 5) Ambil IM terbaru (QA/MIS)
     $lastIM = null;
-    if (in_array($deptName, ['QA','MIS'])) {
-        $stmt = $connIMOM->prepare("SELECT * FROM data_im WHERE sub_workstation_id = ? ORDER BY id DESC LIMIT 1");
+    if (in_array($deptName, ['QA','MIS'], true)) {
+        $stmt = $connIMOM->prepare("SELECT id FROM data_im WHERE sub_workstation_id = ? ORDER BY id DESC LIMIT 1");
         $stmt->bind_param("i", $subWsId);
         $stmt->execute();
         $lastIM = $stmt->get_result()->fetch_assoc();
@@ -74,15 +83,16 @@ function checkMonitoringAccess($connUser, $connIMOM, $npk, $machineId) {
         return [
             'type' => 'error',
             'title' => 'Data Kosong',
-            'message' => "Belum ada file OM/IM terbaru untuk mesin {$subWsName}."
+            'message' => "Belum ada file OM/IM terbaru untuk mesin {$subWsName}.",
+            'redirect' => "index.php?page=workstations&dept_id=" . $rowDept['id']
         ];
     }
 
-    // redirect ke monitoring_detail.php
+    //redirect ke monitoring_detail 
     return [
-        'type' => 'success',
-        'title' => 'Akses Diterima',
-        'message' => "Menampilkan file terbaru untuk mesin {$subWsName}.",
+        'type'     => 'success',
+        'title'    => 'Akses Diterima',
+        'message'  => "Menampilkan file terbaru untuk mesin {$subWsName}.",
         'redirect' => "monitoring_detail.php?npk={$npk}&machine=" . urlencode($subWsName)
     ];
 }

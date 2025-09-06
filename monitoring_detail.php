@@ -35,10 +35,16 @@ if (!$npk || !$machine) {
             $deptId   = $rowDept['id'];
             $deptName = $rowDept['dept_name'];
 
-            // connect ke sub_workstations
-            $stmt = $connIMOM->prepare("SELECT id, name FROM sub_workstations WHERE name LIKE ? LIMIT 1");
-            $search = "%".$machine."%";
-            $stmt->bind_param("s", $search);
+            // Cari sub_workstation (bisa input id atau nama)
+            if (ctype_digit((string)$machine)) {
+                $machineId = (int)$machine;
+                $stmt = $connIMOM->prepare("SELECT id, name FROM sub_workstations WHERE id = ? LIMIT 1");
+                $stmt->bind_param("i", $machineId);
+            } else {
+                $machineName = trim($machine);
+                $stmt = $connIMOM->prepare("SELECT id, name FROM sub_workstations WHERE LOWER(name) = LOWER(?) LIMIT 1");
+                $stmt->bind_param("s", $machineName);
+            }
             $stmt->execute();
             $rowSub = $stmt->get_result()->fetch_assoc();
             $stmt->close();
@@ -65,11 +71,16 @@ if (!$npk || !$machine) {
                     $lastIM = $stmt->get_result()->fetch_assoc();
                     $stmt->close();
                 }
+
+                if (!$lastOM && !$lastIM) {
+                    $errorMessage = "Belum ada file OM/IM terbaru untuk mesin {$subWsName}.";
+                }
             }
         }
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -86,10 +97,10 @@ if (!$npk || !$machine) {
 Swal.fire({
     icon: 'error',
     title: 'Akses Ditolak',
-    text: '<?= addslashes($errorMessage) ?>',
+    text: <?= json_encode($errorMessage) ?>,
     confirmButtonColor: '#d33'
 }).then(() => {
-    window.location.href = "index.php"; // redirect balik
+    window.history.back(); // redirect balik
 });
 </script>
 <?php else: ?>

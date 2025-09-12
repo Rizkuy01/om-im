@@ -71,6 +71,9 @@ if ($currentPage === 'monitoring' && isset($_GET['npk'])) {
         <h1 class="text-lg font-semibold">
           Welcome, <strong><?= htmlspecialchars($_SESSION['username']) ?></strong>
         </h1>
+        <h1 class="bg-red-600 text-white text-lg font-bold px-3 py-1 border border-red-700 rounded-xl">
+          DIGITAL OM/IM
+        </h1>
         <div class="relative">
           <button id="profileBtn" class="flex items-center gap-3 px-3 py-2 rounded hover:bg-gray-100">
             <span class="font-medium text-gray-700"><?= htmlspecialchars($_SESSION['username']) ?></span>

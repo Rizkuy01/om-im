@@ -37,7 +37,8 @@ $gradients = [
             <?php 
             $i = 0;
             while($dept = $result->fetch_assoc()): 
-                if (strtoupper($dept['dept_name']) === 'MIS') continue;
+                $skippedDepts = ['MIS', 'QA'];
+                if (in_array(strtoupper($dept['dept_name']), $skippedDepts)) continue;
                 $gradient = $gradients[$i % count($gradients)];
                 $i++;
             ?>

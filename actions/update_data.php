@@ -1,8 +1,9 @@
 <?php
-require_once 'config.php';
+require_once __DIR__ . '/../config.php';
+session_start();
 
 $errorMessage = null;
-$redirectUrl  = "index.php";
+$redirectUrl  = "../index.php";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id                 = (int) ($_POST['id'] ?? 0);
@@ -30,12 +31,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $subName = $subQ->get_result()->fetch_assoc()['name'] ?? "SubWS";
         $subQ->close();
 
-        $basePath = "uploads/$deptName/$subName/";
+        // Path fisik dan path DB
+        $basePath = __DIR__ . "/../uploads/$deptName/$subName/";
+        $dbPath   = "uploads/$deptName/$subName/";
+
         if (!is_dir($basePath)) {
             mkdir($basePath, 0777, true);
         }
 
-        // ambil data lama untuk hapus file
+        // ambil data lama untuk hapus file lama
         $oldQ = $connIMOM->prepare("SELECT file_name, path_name FROM {$tableName} WHERE id = ?");
         $oldQ->bind_param("i", $id);
         $oldQ->execute();
@@ -52,9 +56,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $newFileName = $part_number . $suffix . "." . $file_ext;
                 $targetFile  = $basePath . $newFileName;
 
-                // hapus file lama
+                // hapus file lama (gunakan path lama dari DB)
                 if (!empty($oldData['file_name'])) {
-                    $oldFile = $oldData['path_name'] . $oldData['file_name'];
+                    $oldFile = __DIR__ . "/../" . $oldData['path_name'] . $oldData['file_name'];
                     if (file_exists($oldFile)) {
                         unlink($oldFile);
                     }
@@ -62,24 +66,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 if (move_uploaded_file($uploaded['tmp_name'], $targetFile)) {
                     $stmt = $connIMOM->prepare("UPDATE {$tableName} 
-                        SET file_name=?, path_name=? 
+                        SET file_name=?, path_name=?, part_number=? 
                         WHERE id=?");
-                    $stmt->bind_param("ssi", $newFileName, $basePath, $id);
+                    $stmt->bind_param("sssi", $newFileName, $dbPath, $part_number, $id);
                     $stmt->execute();
                     $stmt->close();
                 } else {
                     $errorMessage = "Gagal upload file baru.";
                 }
             }
+        } else {
+            // update part number
+            $stmt = $connIMOM->prepare("UPDATE {$tableName} SET part_number=? WHERE id=?");
+            $stmt->bind_param("si", $part_number, $id);
+            $stmt->execute();
+            $stmt->close();
         }
 
-        // jika tidak ada error, redirect normal
-        if (!$errorMessage) {
-            header("Location: index.php?page=detail_sub_workstations&sub_id={$sub_workstation_id}&workstation_id={$workstation_id}&dept_id={$dept_id}&type={$type}");
-            exit;
-        } else {
-            $redirectUrl = "index.php?page=detail_sub_workstations&sub_id={$sub_workstation_id}&workstation_id={$workstation_id}&dept_id={$dept_id}&type={$type}";
-        }
+        // redirect
+        $redirectUrl = "../index.php?page=detail_sub_workstations&sub_id={$sub_workstation_id}&workstation_id={$workstation_id}&dept_id={$dept_id}&type={$type}";
     } else {
         $errorMessage = "Data tidak lengkap!";
     }
@@ -103,6 +108,10 @@ Swal.fire({
 }).then(() => {
     window.location.href = "<?= $redirectUrl ?>";
 });
+</script>
+<?php else: ?>
+<script>
+window.location.href = "<?= $redirectUrl ?>";
 </script>
 <?php endif; ?>
 </body>

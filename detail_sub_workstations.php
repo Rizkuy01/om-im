@@ -92,50 +92,61 @@ include 'partials/edit_modal.php';
                     <tr>
                         <th class="px-6 py-3 border">#</th>
                         <th class="px-6 py-3 border">Part Number</th>
+                        <th class="px-6 py-3 border">Process</th>
                         <th class="px-6 py-3 border">File</th>
                         <th class="px-6 py-3 border">Path File</th>
                         <th class="px-6 py-3 border">Action</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if ($dataRows->num_rows > 0): ?>
-                        <?php $no = 1; while ($row = $dataRows->fetch_assoc()): ?>
-                            <tr>
-                                <td class="px-6 py-3 border"><?= $no++ ?></td>
-                                <td class="px-6 py-3 border"><?= htmlspecialchars($row['part_number']) ?></td>
-                                <td class="px-6 py-3 border">
-                                    <a href="<?= htmlspecialchars($row['path_name'] . $row['file_name']) ?>" target="_blank" class="text-blue-600 hover:underline">
-                                        <?= htmlspecialchars($row['file_name']) ?>
-                                    </a>
-                                </td>
-                                <td class="px-6 py-3 border"><?= htmlspecialchars($row['path_name']) ?></td>
-                                <td class="px-6 py-3 border text-center">
-                                    <a href="javascript:void(0)" 
-                                        onclick="openEditModal(<?= $row['id'] ?>, '<?= htmlspecialchars($row['part_number'], ENT_QUOTES) ?>')" 
-                                        class="bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-medium px-3 py-1 rounded-full shadow">
-                                        <i class="fa-solid fa-pen-to-square"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                        <?php endwhile; ?>
-                    <?php else: ?>
-                        <tr>
-                            <td colspan="5" class="px-6 py-4 text-center text-gray-500">
-                                Tidak ada data
-                            </td>
-                        </tr>
-                        <script>
-                            document.addEventListener("DOMContentLoaded", function() {
-                                Swal.fire({
-                                    icon: 'info',
-                                    title: 'Tidak ada data',
-                                    text: 'Tidak ada data pada sub workstations ini',
-                                    confirmButtonColor: '#d33'
-                                });
-                            });
-                        </script>
-                    <?php endif; ?>
-                </tbody>
+    <?php if ($dataRows->num_rows > 0): ?>
+        <?php $no = 1; while ($row = $dataRows->fetch_assoc()): ?>
+            <?php
+                // Default nilai process
+                $procName = "(Tidak ada process)";
+
+                if (!empty($row['process_id'])) {
+                    $p = $connIMOM->query("SELECT process_name FROM process WHERE id = {$row['process_id']}")->fetch_assoc();
+                    $procName = $p['process_name'] ?? "Belum ada process";
+                }
+            ?>
+            <tr>
+                <td class="px-6 py-3 border"><?= $no++ ?></td>
+                <td class="px-6 py-3 border"><?= htmlspecialchars($row['part_number']) ?></td>
+                <td class="px-6 py-3 border"><?= htmlspecialchars($procName) ?></td>
+                <td class="px-6 py-3 border">
+                    <a href="<?= htmlspecialchars($row['path_name'] . $row['file_name']) ?>" target="_blank" class="text-blue-600 hover:underline">
+                        <?= htmlspecialchars($row['file_name']) ?>
+                    </a>
+                </td>
+                <td class="px-6 py-3 border"><?= htmlspecialchars($row['path_name']) ?></td>
+                <td class="px-6 py-3 border text-center">
+                    <a href="javascript:void(0)" 
+                        onclick="openEditModal(<?= $row['id'] ?>, '<?= htmlspecialchars($row['part_number'], ENT_QUOTES) ?>')" 
+                        class="bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-medium px-3 py-1 rounded-full shadow">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </a>
+                </td>
+            </tr>
+        <?php endwhile; ?>
+    <?php else: ?>
+        <tr>
+            <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                Tidak ada data
+            </td>
+        </tr>
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Tidak ada data',
+                    text: 'Tidak ada data pada sub workstations ini',
+                    confirmButtonColor: '#d33'
+                });
+            });
+        </script>
+    <?php endif; ?>
+</tbody>
             </table>
         </div>
 

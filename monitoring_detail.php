@@ -62,16 +62,6 @@ if (!$npk || !$machine) {
                 $lastOM = $stmt->get_result()->fetch_assoc();
                 $stmt->close();
 
-                // Ambil file terakhir dari IM
-                $lastIM = null;
-                if ($deptName === 'QA') {
-                    $stmt = $connIMOM->prepare("SELECT * FROM data_im WHERE sub_workstation_id = ? ORDER BY id DESC LIMIT 1");
-                    $stmt->bind_param("i", $subWsId);
-                    $stmt->execute();
-                    $lastIM = $stmt->get_result()->fetch_assoc();
-                    $stmt->close();
-                }
-
                 if (!$lastOM && !$lastIM) {
                     $errorMessage = "Belum ada file OM/IM terbaru untuk mesin {$subWsName}.";
                 }
@@ -100,7 +90,7 @@ Swal.fire({
     text: <?= json_encode($errorMessage) ?>,
     confirmButtonColor: '#d33'
 }).then(() => {
-    window.history.back(); // redirect balik
+    window.history.back();
 });
 </script>
 <?php else: ?>
@@ -109,9 +99,12 @@ Swal.fire({
   <div class="bg-red-600 text-white px-6 py-4 shadow-md text-center">
     <h1 class="text-2xl font-bold">Monitoring Result</h1>
     <p class="mt-1 text-sm">
-      <strong>NPK:</strong> <?= htmlspecialchars($npk) ?> | 
-      <strong>Dept:</strong> <?= htmlspecialchars($deptName) ?> | 
-      <strong>Mesin:</strong> <?= htmlspecialchars($subWsName) ?>
+        <strong>NPK:</strong> <?= htmlspecialchars($npk) ?> | 
+        <strong>Dept:</strong> <?= htmlspecialchars($deptName) ?> | 
+        <strong>Mesin:</strong> <?= htmlspecialchars($subWsName) ?> |
+        <?php if (!empty($lastOM)): ?>
+            <strong>Part (OM):</strong> <?= htmlspecialchars($lastOM['part_number']) ?>
+        <?php endif; ?>
     </p>
   </div>
 

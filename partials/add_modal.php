@@ -8,11 +8,36 @@
                 </button>
                 <h3 class="text-lg font-bold text-gray-800 mb-4">Tambah Data <?= htmlspecialchars($subWs['name']) ?> - <?= $type ?></h3>
 
-                <form id="addDataForm" method="POST" action="save_data.php" enctype="multipart/form-data">
+                <form id="addDataForm" method="POST" action="actions/save_data.php" enctype="multipart/form-data">
                     <input type="hidden" name="sub_workstation_id" value="<?= $sub_id ?>">
                     <input type="hidden" name="workstation_id" value="<?= $workstation_id ?>">
                     <input type="hidden" name="dept_id" value="<?= $dept_id ?>">
                     <input type="hidden" name="type" value="<?= $type ?>">
+
+                    <!-- Input Process -->
+                    <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Process</label>
+                    <?php
+                        // ambil proses untuk sub_workstation terkait
+                        $stmtProc = $connIMOM->prepare("SELECT id, process_name FROM process WHERE sub_workstations_id = ?");
+                        $stmtProc->bind_param("i", $sub_id);
+                        $stmtProc->execute();
+                        $procResult = $stmtProc->get_result();
+                        $stmtProc->close();
+                    ?>
+                    <?php if ($procResult->num_rows > 0): ?>
+                        <select name="process_id"
+                        class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-red-300">
+                        <option value="">-- Pilih Process --</option>
+                        <?php while($p = $procResult->fetch_assoc()): ?>
+                            <option value="<?= $p['id'] ?>"><?= htmlspecialchars($p['process_name']) ?></option>
+                        <?php endwhile; ?>
+                        </select>
+                    <?php else: ?>
+                        <input type="hidden" name="process_id" value="">
+                        <p class="text-gray-500 italic">(Tidak ada process)</p>
+                    <?php endif; ?>
+                    </div>
 
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Part Number</label>

@@ -21,10 +21,10 @@
 
       <!-- Dropdown Mesin -->
       <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700 mb-1">Nomor Mesin</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Line</label>
         <select name="machine" required
           class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-red-300">
-          <option value="">-- Pilih Mesin --</option>
+          <option value="">-- Pilih Line --</option>
         </select>
       </div>
 

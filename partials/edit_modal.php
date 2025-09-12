@@ -8,7 +8,7 @@
 
         <h3 class="text-lg font-bold text-gray-800 mb-4">Edit Data (<?= $type ?>)</h3>
 
-        <form id="editDataForm" method="POST" action="update_data.php" enctype="multipart/form-data">
+        <form id="editDataForm" method="POST" action="actions/update_data.php" enctype="multipart/form-data">
             <!-- hidden id record yang akan di-edit -->
             <input type="hidden" name="id" id="edit_id">
             <input type="hidden" name="sub_workstation_id" value="<?= $sub_id ?>">

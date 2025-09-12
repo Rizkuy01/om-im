@@ -1,5 +1,5 @@
 <?php
-require_once 'config.php';
+require_once __DIR__ . '/../config.php';
 session_start();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -7,6 +7,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $workstation_id     = (int) ($_POST['workstation_id'] ?? 0);
     $dept_id            = (int) ($_POST['dept_id'] ?? 0);
     $part_number        = trim($_POST['part_number'] ?? '');
+    $process_id         = !empty($_POST['process_id']) ? (int) $_POST['process_id'] : null; // ✅ ambil dari form
     $type               = strtoupper($_POST['type'] ?? 'IM');
     $uploaded           = $_FILES['uploaded_file'] ?? null;
 
@@ -14,7 +15,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $tableName = ($type === 'OM') ? 'data_om' : 'data_im';
     $suffix    = ($type === 'OM') ? '-OM' : '-IM';
 
-    $redirect = "index.php?page=detail_sub_workstations&sub_id={$sub_workstation_id}&workstation_id={$workstation_id}&dept_id={$dept_id}&type={$type}";
+    // redirect setelah selesai
+    $redirect = "../index.php?page=detail_sub_workstations&sub_id={$sub_workstation_id}&workstation_id={$workstation_id}&dept_id={$dept_id}&type={$type}";
 
     // validasi awal
     if ($sub_workstation_id <= 0 || $part_number === '' || !$uploaded) {
@@ -40,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // cek apakah part_number sudah ada di tabel sesuai type (IM atau OM)
+    // cek apakah part_number sudah ada
     $stmt = $connIMOM->prepare("SELECT id FROM {$tableName} WHERE part_number = ?");
     $stmt->bind_param("s", $part_number);
     $stmt->execute();
@@ -60,41 +62,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $subName = $subQ->get_result()->fetch_assoc()['name'] ?? "SubWS";
     $subQ->close();
 
-    // buat folder Dept/SubWS/
-    $basePath = "uploads/$deptName/$subName/";
+    // buat folder Dept/SubWS di ROOT project
+    $basePath = __DIR__ . "/../uploads/$deptName/$subName/";
+    $dbPath   = "uploads/$deptName/$subName/";
+
     if (!is_dir($basePath)) {
         mkdir($basePath, 0777, true);
     }
 
-    // rename file jadi partnumber-IM/OM
+    // rename file
     $newFileName = $part_number . $suffix . "." . $file_ext;
     $targetFile  = $basePath . $newFileName;
 
-    // jika replace data lama
-    if (isset($_POST['replace']) && $existing) {
-        if (move_uploaded_file($uploaded['tmp_name'], $targetFile)) {
-            $stmt = $connIMOM->prepare("UPDATE {$tableName} SET file_name=?, path_name=? WHERE part_number=?");
-            $stmt->bind_param("sss", $newFileName, $basePath, $part_number);
-            $stmt->execute();
-            $stmt->close();
-
-            $_SESSION['alert'] = [
-                "type" => "success",
-                "title" => "Berhasil",
-                "message" => "File berhasil direplace."
-            ];
-        } else {
-            $_SESSION['alert'] = [
-                "type" => "error",
-                "title" => "Upload gagal",
-                "message" => "Tidak bisa menyimpan file yang diupload."
-            ];
-        }
-        header("Location: $redirect");
-        exit;
-    }
-
-    // kalau data baru
+    // kalau part_number sudah ada
     if ($existing) {
         $_SESSION['alert'] = [
             "type" => "error",
@@ -105,9 +85,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    // simpan file baru
     if (move_uploaded_file($uploaded['tmp_name'], $targetFile)) {
-        $stmt = $connIMOM->prepare("INSERT INTO {$tableName} (sub_workstation_id, part_number, file_name, path_name) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("isss", $sub_workstation_id, $part_number, $newFileName, $basePath);
+        $stmt = $connIMOM->prepare("INSERT INTO {$tableName} (sub_workstation_id, process_id, part_number, file_name, path_name) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("iisss", $sub_workstation_id, $process_id, $part_number, $newFileName, $dbPath);
         $stmt->execute();
         $stmt->close();
 

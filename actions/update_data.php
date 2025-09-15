@@ -11,6 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $workstation_id     = (int) ($_POST['workstation_id'] ?? 0);
     $dept_id            = (int) ($_POST['dept_id'] ?? 0);
     $part_number        = trim($_POST['part_number'] ?? '');
+    
     $type               = strtoupper($_POST['type'] ?? 'IM');
     $uploaded           = $_FILES['uploaded_file'] ?? null;
 

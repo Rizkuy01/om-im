@@ -4,8 +4,10 @@ session_start();
 
 $npk     = $_GET['npk'] ?? null;
 $machine = $_GET['machine'] ?? null;
+$processId = isset($_GET['process_id']) ? (int)$_GET['process_id'] : null;
 
-$errorMessage = null; // penampung error
+$errorMessage = null; 
+$lastOM = $lastIM = null;
 
 if (!$npk || !$machine) {
     $errorMessage = "NPK dan mesin harus dipilih!";
@@ -35,7 +37,7 @@ if (!$npk || !$machine) {
             $deptId   = $rowDept['id'];
             $deptName = $rowDept['dept_name'];
 
-            // Cari sub_workstation (bisa input id atau nama)
+            // Cari sub_workstation (input id atau nama)
             if (ctype_digit((string)$machine)) {
                 $machineId = (int)$machine;
                 $stmt = $connIMOM->prepare("SELECT id, name FROM sub_workstations WHERE id = ? LIMIT 1");
@@ -55,11 +57,34 @@ if (!$npk || !$machine) {
                 $subWsId   = $rowSub['id'];
                 $subWsName = $rowSub['name'];
 
+                // Ambil nama process jika ada processId
+                $procName = null;
+                if ($processId) {
+                    $stmt = $connIMOM->prepare("SELECT process_name FROM process WHERE id = ? AND sub_workstations_id = ?");
+                    $stmt->bind_param("ii", $processId, $subWsId);
+                    $stmt->execute();
+                    $procRow = $stmt->get_result()->fetch_assoc();
+                    $stmt->close();
+                    $procName = $procRow['process_name'] ?? null;
+                }
+
                 // Ambil file terakhir dari OM
                 $stmt = $connIMOM->prepare("SELECT * FROM data_om WHERE sub_workstation_id = ? ORDER BY id DESC LIMIT 1");
                 $stmt->bind_param("i", $subWsId);
                 $stmt->execute();
                 $lastOM = $stmt->get_result()->fetch_assoc();
+                $stmt->close();
+
+                // Ambil file terakhir dari IM
+                if ($processId) {
+                    $stmt = $connIMOM->prepare("SELECT * FROM data_im WHERE sub_workstation_id = ? AND process_id = ? ORDER BY id DESC LIMIT 1");
+                    $stmt->bind_param("ii", $subWsId, $processId);
+                } else {
+                    $stmt = $connIMOM->prepare("SELECT * FROM data_im WHERE sub_workstation_id = ? ORDER BY id DESC LIMIT 1");
+                    $stmt->bind_param("i", $subWsId);
+                }
+                $stmt->execute();
+                $lastIM = $stmt->get_result()->fetch_assoc();
                 $stmt->close();
 
                 if (!$lastOM && !$lastIM) {
@@ -104,6 +129,9 @@ Swal.fire({
         <strong>Mesin:</strong> <?= htmlspecialchars($subWsName) ?> |
         <?php if (!empty($lastOM)): ?>
             <strong>Part (OM):</strong> <?= htmlspecialchars($lastOM['part_number']) ?>
+        <?php endif; ?>
+        <?php if (!empty($procName)): ?>
+            | <strong>Proses:</strong> <?= htmlspecialchars($procName) ?>
         <?php endif; ?>
     </p>
   </div>

@@ -9,7 +9,7 @@
 
     <h3 class="text-lg font-bold text-gray-800 mb-4">Akses Monitoring</h3>
 
-    <form id="monitoringForm" method="GET" action="">
+    <form id="monitoringForm" method="GET" action="monitoring_process.php">
       <input type="hidden" name="page" value="monitoring">
 
       <!-- Input NPK -->

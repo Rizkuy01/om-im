@@ -3,7 +3,7 @@ session_start();
 require_once 'config.php';
 require_once 'actions/check_monitoring.php';
 
-$currentPage = $_GET['page'] ?? 'home';
+$currentPage = $_GET['page'] ?? 'main_dashboard';
 
 $publicPages = ['check_model', 'monitoring'];
 
@@ -48,6 +48,10 @@ if ($currentPage === 'monitoring' && isset($_GET['npk'])) {
       <img src="assets/kyb.png" alt="KYB Logo" class="w-28 mx-auto">
     </div>
     <nav class="flex-1 px-4 py-6 space-y-2">
+      <a href="index.php?page=main_dashboard" 
+        class="flex items-center px-3 py-2 rounded-md <?= $currentPage === 'main_dashboard' ? 'text-red-600 font-semibold' : 'text-gray-700 hover:text-red-600' ?>">
+        <i class="fa fa-home px-2"></i> Dashboard
+      </a>
       <a href="index.php?page=home" class="flex items-center px-3 py-2 rounded-md <?= $currentPage === 'home' ? 'text-red-600 font-semibold' : 'text-gray-700 hover:text-red-600' ?>">
         <i class="fa fa-pen-to-square px-2"></i> Input IM/OM
       </a>
@@ -104,9 +108,12 @@ if ($currentPage === 'monitoring' && isset($_GET['npk'])) {
           case 'detail_sub_workstations':  
             include 'detail_sub_workstations.php';
             break;
-          default:
+          case 'main_dashboard':
+            include 'main_dashboard.php';
+            break;
+        default:
             include 'dashboard_home.php';
-        }
+                }
       ?>
     </main>
   </div>

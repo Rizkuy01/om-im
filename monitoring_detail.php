@@ -2,12 +2,13 @@
 require_once 'config.php';
 session_start();
 
-$npk     = $_GET['npk'] ?? null;
-$machine = $_GET['machine'] ?? null;
+$npk       = $_GET['npk'] ?? null;
+$machine   = $_GET['machine'] ?? null;
 $processId = isset($_GET['process_id']) ? (int)$_GET['process_id'] : null;
 
 $errorMessage = null; 
 $lastOM = $lastIM = null;
+$procName = null;
 
 if (!$npk || !$machine) {
     $errorMessage = "NPK dan mesin harus dipilih!";
@@ -37,7 +38,7 @@ if (!$npk || !$machine) {
             $deptId   = $rowDept['id'];
             $deptName = $rowDept['dept_name'];
 
-            // Cari sub_workstation (input id atau nama)
+            // Cari sub_workstation (id atau nama)
             if (ctype_digit((string)$machine)) {
                 $machineId = (int)$machine;
                 $stmt = $connIMOM->prepare("SELECT id, name FROM sub_workstations WHERE id = ? LIMIT 1");
@@ -57,8 +58,7 @@ if (!$npk || !$machine) {
                 $subWsId   = $rowSub['id'];
                 $subWsName = $rowSub['name'];
 
-                // Ambil nama process jika ada processId
-                $procName = null;
+                // Ambil nama process (jika ada)
                 if ($processId) {
                     $stmt = $connIMOM->prepare("SELECT process_name FROM process WHERE id = ? AND sub_workstations_id = ?");
                     $stmt->bind_param("ii", $processId, $subWsId);
@@ -69,8 +69,13 @@ if (!$npk || !$machine) {
                 }
 
                 // Ambil file terakhir dari OM
-                $stmt = $connIMOM->prepare("SELECT * FROM data_om WHERE sub_workstation_id = ? ORDER BY id DESC LIMIT 1");
-                $stmt->bind_param("i", $subWsId);
+                if ($processId) {
+                    $stmt = $connIMOM->prepare("SELECT * FROM data_om WHERE sub_workstation_id = ? AND process_id = ? ORDER BY id DESC LIMIT 1");
+                    $stmt->bind_param("ii", $subWsId, $processId);
+                } else {
+                    $stmt = $connIMOM->prepare("SELECT * FROM data_om WHERE sub_workstation_id = ? ORDER BY id DESC LIMIT 1");
+                    $stmt->bind_param("i", $subWsId);
+                }
                 $stmt->execute();
                 $lastOM = $stmt->get_result()->fetch_assoc();
                 $stmt->close();
@@ -88,13 +93,14 @@ if (!$npk || !$machine) {
                 $stmt->close();
 
                 if (!$lastOM && !$lastIM) {
-                    $errorMessage = "Belum ada file OM/IM terbaru untuk mesin {$subWsName}.";
+                    $errorMessage = "Belum ada file OM/IM terbaru untuk mesin {$subWsName}" . ($procName ? " - Proses {$procName}" : "");
                 }
             }
         }
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html>

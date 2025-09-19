@@ -5,6 +5,7 @@ session_start();
 $npk       = $_GET['npk'] ?? null;
 $machine   = $_GET['machine'] ?? null;
 $processId = isset($_GET['process_id']) ? (int)$_GET['process_id'] : null;
+$type      = strtoupper(trim($_GET['type'] ?? '')); // 🔥 tambahkan
 
 $errorMessage = null; 
 $lastOM = $lastIM = null;
@@ -13,7 +14,7 @@ $procName = null;
 if (!$npk || !$machine) {
     $errorMessage = "NPK dan mesin harus dipilih!";
 } else {
-    // Ambil dept dari lembur1.ct_users
+    // --- Cek user dept
     $stmt = $connUser->prepare("SELECT dept FROM ct_users WHERE npk = ? LIMIT 1");
     $stmt->bind_param("s", $npk);
     $stmt->execute();
@@ -25,7 +26,6 @@ if (!$npk || !$machine) {
     } else {
         $deptUser = ucwords(strtolower(trim($resUser['dept'])));
 
-        // Cari dept di om_im.department
         $stmt = $connIMOM->prepare("SELECT id, dept_name FROM department WHERE LOWER(dept_name) = LOWER(?) LIMIT 1");
         $stmt->bind_param("s", $deptUser);
         $stmt->execute();
@@ -38,7 +38,7 @@ if (!$npk || !$machine) {
             $deptId   = $rowDept['id'];
             $deptName = $rowDept['dept_name'];
 
-            // Cari sub_workstation (id atau nama)
+            // --- Cari sub workstation
             if (ctype_digit((string)$machine)) {
                 $machineId = (int)$machine;
                 $stmt = $connIMOM->prepare("SELECT id, name FROM sub_workstations WHERE id = ? LIMIT 1");
@@ -58,7 +58,7 @@ if (!$npk || !$machine) {
                 $subWsId   = $rowSub['id'];
                 $subWsName = $rowSub['name'];
 
-                // Ambil nama process (jika ada)
+                // --- Ambil nama process
                 if ($processId) {
                     $stmt = $connIMOM->prepare("SELECT process_name FROM process WHERE id = ? AND sub_workstations_id = ?");
                     $stmt->bind_param("ii", $processId, $subWsId);
@@ -68,29 +68,44 @@ if (!$npk || !$machine) {
                     $procName = $procRow['process_name'] ?? null;
                 }
 
-                // Ambil file terakhir dari OM
-                if ($processId) {
-                    $stmt = $connIMOM->prepare("SELECT * FROM data_om WHERE sub_workstation_id = ? AND process_id = ? ORDER BY id DESC LIMIT 1");
-                    $stmt->bind_param("ii", $subWsId, $processId);
+                // 🔥 Tentukan ambil file sesuai type
+                if ($type === 'OM') {
+                    $sql = $processId
+                        ? "SELECT * FROM data_om WHERE sub_workstation_id = ? AND process_id = ? ORDER BY id DESC LIMIT 1"
+                        : "SELECT * FROM data_om WHERE sub_workstation_id = ? ORDER BY id DESC LIMIT 1";
+                    $stmt = $connIMOM->prepare($sql);
+                    if ($processId) $stmt->bind_param("ii", $subWsId, $processId);
+                    else $stmt->bind_param("i", $subWsId);
+                    $stmt->execute();
+                    $lastOM = $stmt->get_result()->fetch_assoc();
+                    $stmt->close();
+                } elseif ($type === 'IM') {
+                    $sql = $processId
+                        ? "SELECT * FROM data_im WHERE sub_workstation_id = ? AND process_id = ? ORDER BY id DESC LIMIT 1"
+                        : "SELECT * FROM data_im WHERE sub_workstation_id = ? ORDER BY id DESC LIMIT 1";
+                    $stmt = $connIMOM->prepare($sql);
+                    if ($processId) $stmt->bind_param("ii", $subWsId, $processId);
+                    else $stmt->bind_param("i", $subWsId);
+                    $stmt->execute();
+                    $lastIM = $stmt->get_result()->fetch_assoc();
+                    $stmt->close();
                 } else {
+                    // default ambil keduanya
                     $stmt = $connIMOM->prepare("SELECT * FROM data_om WHERE sub_workstation_id = ? ORDER BY id DESC LIMIT 1");
                     $stmt->bind_param("i", $subWsId);
-                }
-                $stmt->execute();
-                $lastOM = $stmt->get_result()->fetch_assoc();
-                $stmt->close();
+                    $stmt->execute();
+                    $lastOM = $stmt->get_result()->fetch_assoc();
+                    $stmt->close();
 
-                // Ambil file terakhir dari IM
-                if ($processId) {
-                    $stmt = $connIMOM->prepare("SELECT * FROM data_im WHERE sub_workstation_id = ? AND process_id = ? ORDER BY id DESC LIMIT 1");
-                    $stmt->bind_param("ii", $subWsId, $processId);
-                } else {
-                    $stmt = $connIMOM->prepare("SELECT * FROM data_im WHERE sub_workstation_id = ? ORDER BY id DESC LIMIT 1");
-                    $stmt->bind_param("i", $subWsId);
+                    $stmt = $processId
+                        ? $connIMOM->prepare("SELECT * FROM data_im WHERE sub_workstation_id = ? AND process_id = ? ORDER BY id DESC LIMIT 1")
+                        : $connIMOM->prepare("SELECT * FROM data_im WHERE sub_workstation_id = ? ORDER BY id DESC LIMIT 1");
+                    if ($processId) $stmt->bind_param("ii", $subWsId, $processId);
+                    else $stmt->bind_param("i", $subWsId);
+                    $stmt->execute();
+                    $lastIM = $stmt->get_result()->fetch_assoc();
+                    $stmt->close();
                 }
-                $stmt->execute();
-                $lastIM = $stmt->get_result()->fetch_assoc();
-                $stmt->close();
 
                 if (!$lastOM && !$lastIM) {
                     $errorMessage = "Belum ada file OM/IM terbaru untuk mesin {$subWsName}" . ($procName ? " - Proses {$procName}" : "");
@@ -100,6 +115,7 @@ if (!$npk || !$machine) {
     }
 }
 ?>
+
 
 
 <!DOCTYPE html>

@@ -71,16 +71,16 @@ if ($currentPage === 'monitoring' && isset($_GET['npk'])) {
   <div class="flex-1 flex flex-col">
     <?php if (isset($_SESSION['user_id'])): ?>
       <!-- Header -->
-      <header class="flex justify-between items-center bg-white shadow px-6 py-5">
-        <h1 class="text-lg font-semibold">
+      <header class="flex justify-between items-center bg-red-600 shadow px-6 py-5">
+        <h1 class="text-lg font-semibold text-white">
           Welcome, <strong><?= htmlspecialchars($_SESSION['username']) ?></strong>
         </h1>
-        <h1 class="bg-red-600 text-white text-lg font-bold px-3 py-1 border border-red-700 rounded-xl">
+        <h1 class="text-white text-lg font-bold px-3 py-">
           DIGITAL OM/IM
         </h1>
         <div class="relative">
-          <button id="profileBtn" class="flex items-center gap-3 px-3 py-2 rounded hover:bg-gray-100">
-            <span class="font-medium text-gray-700"><?= htmlspecialchars($_SESSION['username']) ?></span>
+          <button id="profileBtn" class="flex items-center gap-3 px-3 py-2 rounded hover:bg-red-800">
+            <span class="font-medium text-white"><?= htmlspecialchars($_SESSION['username']) ?></span>
             <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
               <i class="fa fa-user text-gray-700"></i>
             </div>

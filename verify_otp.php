@@ -10,13 +10,14 @@ $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['otp'])) {
     if ($_POST['otp'] === (string)$_SESSION['pending_user']['otp']) {
         // Set Session
+        $_SESSION['npk']      = $_SESSION['pending_user']['npk'];
         $_SESSION['user_id']   = $_SESSION['pending_user']['npk'];
         $_SESSION['username']  = $_SESSION['pending_user']['username'];
         $_SESSION['dept']      = $_SESSION['pending_user']['dept'];
         $_SESSION['dept_id']   = $_SESSION['pending_user']['dept_id'];
 
         // redirect
-        $redirect = $_SESSION['pending_user']['redirect_after_otp'] ?? 'index.php?page=dashboard_home';
+        $redirect = $_SESSION['pending_user']['redirect_after_otp'] ?? 'index.php?page=main_dashboard';
 
         unset($_SESSION['pending_user']);
 

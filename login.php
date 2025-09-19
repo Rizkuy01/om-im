@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['npk'], $_POST['passwo
                     if (stripos($deptName, 'Production') === 0) {
                         $_SESSION['pending_user']['redirect_after_otp'] = "index.php?page=workstations&dept_id=" . $deptId;
                     } else {
-                        $_SESSION['pending_user']['redirect_after_otp'] = "index.php?page=dashboard_home";
+                        $_SESSION['pending_user']['redirect_after_otp'] = "index.php?page=main_dashboard";
                     }
 
                     header("Location: verify_otp.php");

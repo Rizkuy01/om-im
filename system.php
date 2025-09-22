@@ -7,35 +7,41 @@ if (!in_array(strtoupper($_SESSION['dept'] ?? ''), ['QA','MIS'])) {
 }
 ?>
 
-<div class="p-6">
-    <h1 class="text-2xl font-bold mb-6 text-gray-800">System Management</h1>
+<div class="bg-white rounded-lg shadow p-6">
+    <!-- Judul -->
+    <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">
+        System Management
+    </h1>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="space-y-4">
         <!-- Card Workstation -->
-        <div class="bg-white p-6 rounded-lg shadow border">
-            <h2 class="text-lg font-semibold mb-3">Add Workstation</h2>
-            <button onclick="openModal('workstationModal')" 
-                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow">
-                + Add
-            </button>
+        <div onclick="openModal('workstationModal')" 
+            class="cursor-pointer bg-white border border-red-200 rounded-lg shadow hover:shadow-lg 
+                   flex flex-col items-center justify-center p-6 transition transform hover:scale-105">
+            <div class="w-14 h-14 flex items-center justify-center rounded-full bg-gradient-to-br from-green-400 to-green-600 text-white shadow">
+                <i class="fa-solid fa-industry text-2xl"></i>
+            </div>
+            <h2 class="text-lg font-semibold text-gray-800 mt-3">Add Workstation</h2>
         </div>
 
         <!-- Card Sub Workstation -->
-        <div class="bg-white p-6 rounded-lg shadow border">
-            <h2 class="text-lg font-semibold mb-3">Add Sub Workstation</h2>
-            <button onclick="openModal('subWsModal')" 
-                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow">
-                + Add
-            </button>
+        <div onclick="openModal('subWsModal')" 
+            class="cursor-pointer bg-white border border-red-200 rounded-lg shadow hover:shadow-lg 
+                   flex flex-col items-center justify-center p-6 transition transform hover:scale-105">
+            <div class="w-14 h-14 flex items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-blue-600 text-white shadow">
+                <i class="fa-solid fa-gears text-2xl"></i>
+            </div>
+            <h2 class="text-lg font-semibold text-gray-800 mt-3">Add Sub Workstation</h2>
         </div>
 
         <!-- Card Process -->
-        <div class="bg-white p-6 rounded-lg shadow border">
-            <h2 class="text-lg font-semibold mb-3">Add Process</h2>
-            <button onclick="openModal('processModal')" 
-                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow">
-                + Add
-            </button>
+        <div onclick="openModal('processModal')" 
+            class="cursor-pointer bg-white border border-red-200 rounded-lg shadow hover:shadow-lg 
+                   flex flex-col items-center justify-center p-6 transition transform hover:scale-105">
+            <div class="w-14 h-14 flex items-center justify-center rounded-full bg-gradient-to-br from-purple-400 to-purple-600 text-white shadow">
+                <i class="fa-solid fa-diagram-project text-2xl"></i>
+            </div>
+            <h2 class="text-lg font-semibold text-gray-800 mt-3">Add Process</h2>
         </div>
     </div>
 </div>
@@ -54,30 +60,5 @@ function openModal(id) {
 function closeModal(id) {
     document.getElementById(id).classList.add('hidden');
     document.getElementById(id).classList.remove('flex');
-}
-
-// Ajax cascade dropdown
-function loadWorkstations(deptId, targetSelectId) {
-    fetch('actions/get_workstations.php?dept_id=' + deptId)
-        .then(res => res.json())
-        .then(data => {
-            const select = document.getElementById(targetSelectId);
-            select.innerHTML = '<option value="">-- Pilih Workstation --</option>';
-            data.forEach(w => {
-                select.innerHTML += `<option value="${w.id}">${w.name}</option>`;
-            });
-        });
-}
-
-function loadSubWorkstations(wsId, targetSelectId) {
-    fetch('actions/get_subws.php?workstation_id=' + wsId)
-        .then(res => res.json())
-        .then(data => {
-            const select = document.getElementById(targetSelectId);
-            select.innerHTML = '<option value="">-- Pilih Sub Workstation --</option>';
-            data.forEach(s => {
-                select.innerHTML += `<option value="${s.id}">${s.name}</option>`;
-            });
-        });
 }
 </script>

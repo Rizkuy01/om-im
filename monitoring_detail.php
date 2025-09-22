@@ -5,7 +5,7 @@ session_start();
 $npk       = $_GET['npk'] ?? null;
 $machine   = $_GET['machine'] ?? null;
 $processId = isset($_GET['process_id']) ? (int)$_GET['process_id'] : null;
-$type      = strtoupper(trim($_GET['type'] ?? '')); // 🔥 tambahkan
+$type      = strtoupper(trim($_GET['type'] ?? ''));
 
 $errorMessage = null; 
 $lastOM = $lastIM = null;
@@ -90,32 +90,18 @@ if (!$npk || !$machine) {
                     $lastIM = $stmt->get_result()->fetch_assoc();
                     $stmt->close();
                 } else {
-                    // default ambil keduanya
-                    $stmt = $connIMOM->prepare("SELECT * FROM data_om WHERE sub_workstation_id = ? ORDER BY id DESC LIMIT 1");
-                    $stmt->bind_param("i", $subWsId);
-                    $stmt->execute();
-                    $lastOM = $stmt->get_result()->fetch_assoc();
-                    $stmt->close();
-
-                    $stmt = $processId
-                        ? $connIMOM->prepare("SELECT * FROM data_im WHERE sub_workstation_id = ? AND process_id = ? ORDER BY id DESC LIMIT 1")
-                        : $connIMOM->prepare("SELECT * FROM data_im WHERE sub_workstation_id = ? ORDER BY id DESC LIMIT 1");
-                    if ($processId) $stmt->bind_param("ii", $subWsId, $processId);
-                    else $stmt->bind_param("i", $subWsId);
-                    $stmt->execute();
-                    $lastIM = $stmt->get_result()->fetch_assoc();
-                    $stmt->close();
+                    // 🚨 kalau type kosong/invalid
+                    $errorMessage = "Parameter type tidak valid. Harus 'OM' atau 'IM'.";
                 }
 
-                if (!$lastOM && !$lastIM) {
-                    $errorMessage = "Belum ada file OM/IM terbaru untuk mesin {$subWsName}" . ($procName ? " - Proses {$procName}" : "");
+                if (!$errorMessage && !$lastOM && !$lastIM) {
+                    $errorMessage = "Belum ada file {$type} terbaru untuk mesin {$subWsName}" . ($procName ? " - Proses {$procName}" : "");
                 }
             }
         }
     }
 }
 ?>
-
 
 
 <!DOCTYPE html>
@@ -148,10 +134,7 @@ Swal.fire({
     <p class="mt-1 text-sm">
         <strong>NPK:</strong> <?= htmlspecialchars($npk) ?> | 
         <strong>Dept:</strong> <?= htmlspecialchars($deptName) ?> | 
-        <strong>Mesin:</strong> <?= htmlspecialchars($subWsName) ?> |
-        <?php if (!empty($lastOM)): ?>
-            <strong>Part (OM):</strong> <?= htmlspecialchars($lastOM['part_number']) ?>
-        <?php endif; ?>
+        <strong>Mesin:</strong> <?= htmlspecialchars($subWsName) ?> 
         <?php if (!empty($procName)): ?>
             | <strong>Proses:</strong> <?= htmlspecialchars($procName) ?>
         <?php endif; ?>
@@ -161,7 +144,7 @@ Swal.fire({
   <!-- MAIN CONTENT -->
   <div class="flex-1 p-6 space-y-8">
       
-      <?php if (!empty($lastOM)): ?>
+      <?php if ($type === 'OM' && !empty($lastOM)): ?>
       <div class="bg-white rounded-lg shadow-md p-4">
         <div class="flex justify-between items-center mb-3">
           <h2 class="text-lg font-semibold text-green-700">
@@ -175,9 +158,7 @@ Swal.fire({
         <iframe src="<?= htmlspecialchars($lastOM['path_name'].$lastOM['file_name']) ?>" 
                 class="w-full h-[80vh] border rounded" frameborder="0"></iframe>
       </div>
-      <?php endif; ?>
-
-      <?php if (!empty($lastIM)): ?>
+      <?php elseif ($type === 'IM' && !empty($lastIM)): ?>
       <div class="bg-white rounded-lg shadow-md p-4">
         <div class="flex justify-between items-center mb-3">
           <h2 class="text-lg font-semibold text-blue-700">

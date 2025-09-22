@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $workstation_id     = (int) ($_POST['workstation_id'] ?? 0);
     $dept_id            = (int) ($_POST['dept_id'] ?? 0);
     $part_number        = trim($_POST['part_number'] ?? '');
-    
+    $process_id         = !empty($_POST['process_id']) ? (int) $_POST['process_id'] : null; // readonly
     $type               = strtoupper($_POST['type'] ?? 'IM');
     $uploaded           = $_FILES['uploaded_file'] ?? null;
 
@@ -48,6 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $oldQ->close();
 
         if ($uploaded && $uploaded['error'] === UPLOAD_ERR_OK) {
+            // ada file baru
             $file_ext = strtolower(pathinfo($uploaded['name'], PATHINFO_EXTENSION));
             $allowed_ext = ['pdf', 'png', 'jpg', 'jpeg'];
 
@@ -67,22 +68,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 if (move_uploaded_file($uploaded['tmp_name'], $targetFile)) {
                     $stmt = $connIMOM->prepare("UPDATE {$tableName} 
-                        SET file_name=?, path_name=?, part_number=? 
+                        SET file_name=?, path_name=? 
                         WHERE id=?");
-                    $stmt->bind_param("sssi", $newFileName, $dbPath, $part_number, $id);
+                    $stmt->bind_param("ssi", $newFileName, $dbPath, $id);
                     $stmt->execute();
                     $stmt->close();
                 } else {
                     $errorMessage = "Gagal upload file baru.";
                 }
             }
-        } else {
-            // update part number
-            $stmt = $connIMOM->prepare("UPDATE {$tableName} SET part_number=? WHERE id=?");
-            $stmt->bind_param("si", $part_number, $id);
-            $stmt->execute();
-            $stmt->close();
-        }
+        } 
+        // jika tidak upload file baru → tidak ada update file
 
         // redirect
         $redirectUrl = "../index.php?page=detail_sub_workstations&sub_id={$sub_workstation_id}&workstation_id={$workstation_id}&dept_id={$dept_id}&type={$type}";
@@ -103,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <script>
 Swal.fire({
     icon: 'error',
-    title: 'Upload Gagal',
+    title: 'Update Gagal',
     text: '<?= addslashes($errorMessage) ?>',
     confirmButtonColor: '#d33'
 }).then(() => {

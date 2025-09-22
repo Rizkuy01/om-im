@@ -120,11 +120,19 @@ include 'partials/edit_modal.php';
                                     </a>
                                 </td>
                                 <td class="px-6 py-3 border"><?= htmlspecialchars($row['path_name']) ?></td>
-                                <td class="px-6 py-3 border text-center">
+                                <td class="px-6 py-3 border text-center space-x-2">
+                                    <!-- Tombol Edit -->
                                     <a href="javascript:void(0)" 
                                         onclick="openEditModal(<?= $row['id'] ?>, '<?= htmlspecialchars($row['part_number'], ENT_QUOTES) ?>')" 
                                         class="bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-medium px-3 py-1 rounded-full shadow">
                                         <i class="fa-solid fa-pen-to-square"></i>
+                                    </a>
+
+                                    <!-- Tombol Delete -->
+                                    <a href="javascript:void(0)" 
+                                        onclick="confirmDelete(<?= $row['id'] ?>, '<?= htmlspecialchars($row['part_number'], ENT_QUOTES) ?>')" 
+                                        class="bg-red-600 hover:bg-red-700 text-white text-xs font-medium px-3 py-1 rounded-full shadow">
+                                        <i class="fa-solid fa-trash"></i>
                                     </a>
                                 </td>
                             </tr>
@@ -202,6 +210,26 @@ document.getElementById('editDataForm').addEventListener('submit', function(e) {
         }
     });
 });
+</script>
+
+<!-- Delete File -->
+<script>
+    function confirmDelete(id, partNumber) {
+    Swal.fire({
+        title: 'Yakin hapus?',
+        text: `Data dengan Part Number "${partNumber}" akan dihapus permanen.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'hapus',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = `actions/delete_data.php?id=${id}&type=<?= $type ?>&sub_id=<?= $sub_id ?>&workstation_id=<?= $workstation_id ?>&dept_id=<?= $dept_id ?>`;
+        }
+    });
+}
 </script>
 
 <!-- SweetAlert2 -->

@@ -55,14 +55,17 @@ if ($currentPage === 'monitoring' && isset($_GET['npk'])) {
       <a href="index.php?page=home" class="flex items-center px-3 py-2 rounded-md <?= $currentPage === 'home' ? 'text-red-600 font-semibold' : 'text-gray-700 hover:text-red-600' ?>">
         <i class="fa fa-pen-to-square px-2"></i> Input IM/OM
       </a>
-      <a href="index.php?page=check_model" class="flex items-center px-3 py-2 rounded-md <?= $currentPage === 'check_model' ? 'text-red-600 font-semibold' : 'text-gray-700 hover:text-red-600' ?>">
-        <i class="fa fa-magnifying-glass px-2"></i> Check Model
-      </a>
       <a href="#"
         onclick="openMonitoringModal(); return false;"
         class="flex items-center px-3 py-2 rounded-md <?= $currentPage === 'monitoring' ? 'text-red-600 font-semibold' : 'text-gray-700 hover:text-red-600' ?>">
         <i class="fa fa-chart-line px-2"></i> Monitoring OM/IM
       </a>
+      <?php if (in_array($_SESSION['dept'], ['QA','MIS'])): ?>
+      <a href="index.php?page=system" 
+        class="flex items-center px-3 py-2 rounded-md <?= $currentPage === 'system' ? 'text-red-600 font-semibold' : 'text-gray-700 hover:text-red-600' ?>">
+        <i class="fa fa-gear px-2"></i> System
+      </a>
+    <?php endif; ?>
     </nav>
   </aside>
 <?php endif; ?>
@@ -96,8 +99,8 @@ if ($currentPage === 'monitoring' && isset($_GET['npk'])) {
     <main class="flex-1 p-6">
       <?php
         switch ($currentPage) {
-          case 'check_model':
-            include 'check_model.php';
+          case 'system':
+            include 'system.php';
             break;
           case 'workstations':
             include 'workstations.php';

@@ -129,14 +129,14 @@ if (isset($_GET['page']) && $_GET['page'] === 'monitoring' && isset($_GET['npk']
 
     <!-- Button Monitoring -->
     <div class="grid grid-cols-2 gap-3 mt-3">
-        <button type="button" onclick="window.location.href='check_im.php'"
-            class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-md transition duration-300">
-            Monitoring IM
-        </button>
         <button type="button" onclick="openMonitoringModal()"
-            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-md transition duration-300">
-            Monitoring OM
-        </button>
+        class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-md transition duration-300">
+        Monitoring OM
+    </button>
+    <button type="button" onclick="window.location.href='check_im.php'"
+        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-md transition duration-300">
+        Monitoring IM
+    </button>
     </div>
   </div>
 

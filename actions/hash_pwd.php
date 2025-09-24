@@ -1,6 +1,6 @@
 <?php
 // Password asli (plain text)
-$password = "abid123";
+$password = "";
 
 // Buat hash password dengan bcrypt
 $hash = password_hash($password, PASSWORD_BCRYPT);

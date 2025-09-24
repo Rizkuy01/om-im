@@ -8,7 +8,12 @@
                 <select name="dept_id" required class="w-full border rounded px-3 py-2">
                     <?php
                     $res = $connIMOM->query("SELECT id, dept_name FROM department ORDER BY dept_name");
-                    while ($d = $res->fetch_assoc()): ?>
+                    while ($d = $res->fetch_assoc()):
+                        $deptName = strtoupper($d['dept_name']);
+                        if (in_array($deptName, ['QA', 'MIS'])) {
+                            continue;
+                        }
+                    ?>
                         <option value="<?= $d['id'] ?>"><?= htmlspecialchars($d['dept_name']) ?></option>
                     <?php endwhile; ?>
                 </select>

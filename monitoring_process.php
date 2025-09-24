@@ -74,7 +74,7 @@ $stmt->close();
 
                     // link bila ada file
                     $link = $hasFile 
-                        ? "monitoring_detail.php?npk=" . urlencode($npk) . "&machine=" . urlencode($subId) . "&process_id=" . $procId
+                        ? "monitoring_detail.php?npk=" . urlencode($npk) . "&machine=" . urlencode($subId) . "&process_id=" . $procId . "&type=OM"
                         : "javascript:void(0)";
                     ?>
                     <a href="<?= $link ?>"

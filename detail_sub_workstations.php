@@ -89,72 +89,62 @@ include 'partials/edit_modal.php';
         <div class="overflow-x-auto bg-white shadow-md rounded-lg p-4">
             <table id="subWsTable" class="min-w-full text-sm text-left text-gray-700 border-collapse">
                 <thead class="bg-red-600 text-gray-100 uppercase text-xs tracking-wider border-b">
-                    <tr>
-                        <th class="px-6 py-3 border">#</th>
-                        <th class="px-6 py-3 border">Part Number</th>
-                        <th class="px-6 py-3 border">Process</th>
-                        <th class="px-6 py-3 border">File</th>
-                        <th class="px-6 py-3 border">Path File</th>
-                        <th class="px-6 py-3 border">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if ($dataRows->num_rows > 0): ?>
-                        <?php $no = 1; while ($row = $dataRows->fetch_assoc()): ?>
-                            <?php
-                                // Default nilai process
-                                $procName = "(Tidak ada process)";
+    <tr>
+        <th class="px-6 py-3 border">#</th>
+        <?php if ($type === 'IM'): ?>
+            <th class="px-6 py-3 border">Part Number (Model)</th>
+        <?php endif; ?>
+        <th class="px-6 py-3 border">Process</th>
+        <th class="px-6 py-3 border">File</th>
+        <th class="px-6 py-3 border">Path File</th>
+        <th class="px-6 py-3 border">Action</th>
+    </tr>
+</thead>
+<tbody>
+    <?php if ($dataRows->num_rows > 0): ?>
+        <?php $no = 1; while ($row = $dataRows->fetch_assoc()): ?>
+            <?php
+                $procName = "(Tidak ada process)";
+                if (!empty($row['process_id'])) {
+                    $p = $connIMOM->query("SELECT process_name FROM process WHERE id = {$row['process_id']}")->fetch_assoc();
+                    $procName = $p['process_name'] ?? "Belum ada process";
+                }
+            ?>
+            <tr>
+                <td class="px-6 py-3 border"><?= $no++ ?></td>
+                <?php if ($type === 'IM'): ?>
+                    <td class="px-6 py-3 border"><?= htmlspecialchars($row['part_number']) ?></td>
+                <?php endif; ?>
+                <td class="px-6 py-3 border"><?= htmlspecialchars($procName) ?></td>
+                <td class="px-6 py-3 border">
+                    <a href="<?= htmlspecialchars($row['path_name'] . $row['file_name']) ?>" target="_blank" class="text-blue-600 hover:underline">
+                        <?= htmlspecialchars($row['file_name']) ?>
+                    </a>
+                </td>
+                <td class="px-6 py-3 border"><?= htmlspecialchars($row['path_name']) ?></td>
+                <td class="px-6 py-3 border text-center space-x-2">
+                    <a href="javascript:void(0)" 
+                       onclick="openEditModal(<?= $row['id'] ?>)" 
+                       class="bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-medium px-3 py-1 rounded-full shadow">
+                       <i class="fa-solid fa-pen-to-square"></i>
+                    </a>
+                    <a href="javascript:void(0)" 
+                       onclick="confirmDelete(<?= $row['id'] ?>, '<?= htmlspecialchars($row['part_number'] ?? '', ENT_QUOTES) ?>')" 
+                       class="bg-red-600 hover:bg-red-700 text-white text-xs font-medium px-3 py-1 rounded-full shadow">
+                       <i class="fa-solid fa-trash"></i>
+                    </a>
+                </td>
+            </tr>
+        <?php endwhile; ?>
+    <?php else: ?>
+        <tr>
+            <td colspan="<?= $type === 'IM' ? 6 : 5 ?>" class="px-6 py-4 text-center text-gray-500">
+                Tidak ada data
+            </td>
+        </tr>
+    <?php endif; ?>
+</tbody>
 
-                                if (!empty($row['process_id'])) {
-                                    $p = $connIMOM->query("SELECT process_name FROM process WHERE id = {$row['process_id']}")->fetch_assoc();
-                                    $procName = $p['process_name'] ?? "Belum ada process";
-                                }
-                            ?>
-                            <tr>
-                                <td class="px-6 py-3 border"><?= $no++ ?></td>
-                                <td class="px-6 py-3 border"><?= htmlspecialchars($row['part_number']) ?></td>
-                                <td class="px-6 py-3 border"><?= htmlspecialchars($procName) ?></td>
-                                <td class="px-6 py-3 border">
-                                    <a href="<?= htmlspecialchars($row['path_name'] . $row['file_name']) ?>" target="_blank" class="text-blue-600 hover:underline">
-                                        <?= htmlspecialchars($row['file_name']) ?>
-                                    </a>
-                                </td>
-                                <td class="px-6 py-3 border"><?= htmlspecialchars($row['path_name']) ?></td>
-                                <td class="px-6 py-3 border text-center space-x-2">
-                                    <!-- Tombol Edit -->
-                                    <a href="javascript:void(0)" 
-                                        onclick="openEditModal(<?= $row['id'] ?>, '<?= htmlspecialchars($row['part_number'], ENT_QUOTES) ?>')" 
-                                        class="bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-medium px-3 py-1 rounded-full shadow">
-                                        <i class="fa-solid fa-pen-to-square"></i>
-                                    </a>
-
-                                    <!-- Tombol Delete -->
-                                    <a href="javascript:void(0)" 
-                                        onclick="confirmDelete(<?= $row['id'] ?>, '<?= htmlspecialchars($row['part_number'], ENT_QUOTES) ?>')" 
-                                        class="bg-red-600 hover:bg-red-700 text-white text-xs font-medium px-3 py-1 rounded-full shadow">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                        <?php endwhile; ?>
-                    <?php else: ?>
-                        <tr>
-                            <td colspan="6" class="px-6 py-4 text-center text-gray-500">
-                                Tidak ada data
-                            </td>
-                        </tr>
-                        <script>
-                            document.addEventListener("DOMContentLoaded", function() {
-                                Swal.fire({
-                                    icon: 'info',
-                                    title: 'Tidak ada data',
-                                    text: 'Tidak ada data pada sub workstations ini',
-                                    confirmButtonColor: '#d33'
-                                });
-                            });
-                        </script>
-                    <?php endif; ?>
-                </tbody>
             </table>
         </div>
 
@@ -220,7 +210,7 @@ document.getElementById('editDataForm').addEventListener('submit', function(e) {
         text: `Data dengan Part Number "${partNumber}" akan dihapus permanen.`,
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonText: 'hapus',
+        confirmButtonText: 'Hapus',
         cancelButtonText: 'Batal',
         confirmButtonColor: '#d33',
         cancelButtonColor: '#3085d6'

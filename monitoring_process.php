@@ -74,15 +74,15 @@ $stmt->close();
 
                     // link bila ada file
                     $link = $hasFile 
-                        ? "monitoring_detail.php?npk=" . urlencode($npk) . "&machine=" . urlencode($subId) . "&process_id=" . $procId . "&type=OM"
+                        ? "monitoring_detail.php?npk=" . urlencode($npk) . "&machine=" . urlencode($subId) . "&process_id=" . $procId
                         : "javascript:void(0)";
                     ?>
                     <a href="<?= $link ?>"
-                       <?= $hasFile ? '' : "onclick=\"showNoFileAlert('".htmlspecialchars(addslashes($proc['process_name']))."'); return false;\"" ?>
-                       class="block rounded-lg p-4 text-left flex items-center justify-between transition duration-200
-                              <?= $hasFile
-                                   ? 'bg-white border border-red-200 shadow-sm hover:shadow-md hover:border-red-400'
-                                   : 'bg-gray-50 border border-gray-200 hover:border-red-300' ?>">
+                        <?= $hasFile ? '' : "onclick=\"showNoFileAlert('".htmlspecialchars(addslashes($proc['process_name']))."'); return false;\"" ?>
+                        class="block rounded-lg p-4 text-left flex items-center justify-between transition duration-200
+                            <?= $hasFile  
+                                ? 'bg-white border border-red-200 shadow-sm hover:shadow-md hover:border-red-400'
+                                : 'bg-gray-50 border border-gray-200 hover:border-red-300' ?>">
 
                         <div class="flex flex-col">
                             <h2 class="text-sm font-semibold <?= $hasFile ? 'text-red-700' : 'text-gray-700' ?>">

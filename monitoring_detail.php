@@ -14,7 +14,7 @@ $files = [];
 if (!$npk || !$machine || !$processId) {
     $errorMessage = "Parameter tidak lengkap!";
 } else {
-    // --- Ambil dept user
+    // Ambil dept user
     $stmt = $connUser->prepare("SELECT dept FROM ct_users WHERE npk=? LIMIT 1");
     $stmt->bind_param("s", $npk);
     $stmt->execute();
@@ -67,7 +67,8 @@ if (!$npk || !$machine || !$processId) {
                 if ($omFile) {
                     $files[] = [
                         "type" => "OM",
-                        "src"  => $omFile['path_name'].$omFile['file_name']
+                        "src"  => $omFile['path_name'].$omFile['file_name'],
+                        "name" => $omFile['file_name']
                     ];
                 }
 
@@ -82,7 +83,8 @@ if (!$npk || !$machine || !$processId) {
                     $files[] = [
                         "type" => "IM",
                         "part" => $row['part_number'],
-                        "src"  => $row['path_name'].$row['file_name']
+                        "src"  => $row['path_name'].$row['file_name'],
+                        "name" => $row['file_name']
                     ];
                 }
                 $stmt->close();
@@ -102,6 +104,20 @@ if (!$npk || !$machine || !$processId) {
   <title>Monitoring Detail</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    .slide { display: none; }
+    .slide.active { display: block; }
+    .slide img {
+      max-width: 100%;
+      max-height: 70vh;
+      object-fit: contain;
+      margin: 0 auto;
+    }
+    .dot.active {
+      background-color: #ef4444;
+      transform: scale(1.2);
+    }
+  </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
 
@@ -124,34 +140,75 @@ Swal.fire({ icon:'error', title:'Akses Ditolak', text: <?= json_encode($errorMes
 
   <!-- Carousel -->
   <div class="flex-1 flex items-center justify-center p-6">
-    <div class="relative w-full max-w-5xl">
-        <div id="slides" class="relative w-full h-[80vh] overflow-hidden border rounded shadow">
-            <?php foreach($files as $i => $f): ?>
-                <iframe src="<?= htmlspecialchars($f['src']) ?>"
-                        class="slide absolute inset-0 w-full h-full <?= $i===0?'block':'hidden' ?>"
-                        frameborder="0"></iframe>
-            <?php endforeach; ?>
-        </div>
+    <div class="relative w-full max-w-5xl bg-white rounded-lg shadow-lg p-4">
+        <?php foreach($files as $i => $f): ?>
+            <div class="slide <?= $i===0?'active':'' ?> text-center">
+                <p class="font-semibold mb-2">
+                    <?= $f['type']==='OM' ? '(OM)' : '(IM - '.htmlspecialchars($f['part']).')' ?>
+                </p>
+                <img src="<?= htmlspecialchars($f['src']) ?>" alt="File" class="mx-auto slide-img">
+                <p class="text-xs text-gray-500 mt-2"><?= htmlspecialchars($f['name']) ?></p>
+            </div>
+        <?php endforeach; ?>
 
         <!-- Controls -->
-        <button onclick="prevSlide()" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white px-3 py-2 rounded-full">❮</button>
-        <button onclick="nextSlide()" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white px-3 py-2 rounded-full">❯</button>
+        <button onclick="prevSlide()" class="absolute left-0 top-1/2 -translate-y-1/2 bg-gray-800 text-white w-10 h-10 flex items-center justify-center rounded-full shadow">❮</button>
+        <button onclick="nextSlide()" class="absolute right-0 top-1/2 -translate-y-1/2 bg-gray-800 text-white w-10 h-10 flex items-center justify-center rounded-full shadow">❯</button>
+
+        <!-- Fullscreen Button  -->
+        <button onclick="openFullscreen()" 
+                class="absolute top-2 right-2 bg-black/50 text-white px-3 py-2 rounded text-sm">
+            ⛶ Fullscreen
+        </button>
+
+        <!-- Dots -->
+        <div class="flex justify-center mt-4 space-x-2">
+            <?php foreach($files as $i => $f): ?>
+                <span onclick="showSlide(<?= $i ?>)" class="dot w-3 h-3 bg-gray-300 rounded-full cursor-pointer"></span>
+            <?php endforeach; ?>
+        </div>
     </div>
   </div>
 
 <script>
 let current = 0;
 const slides = document.querySelectorAll(".slide");
+const dots   = document.querySelectorAll(".dot");
 
 function showSlide(i){
-  slides[current].classList.add("hidden");
+  slides[current].classList.remove("active");
+  dots[current].classList.remove("active");
+
   current = (i+slides.length)%slides.length;
-  slides[current].classList.remove("hidden");
+
+  slides[current].classList.add("active");
+  dots[current].classList.add("active");
 }
 
 function nextSlide(){ showSlide(current+1); }
 function prevSlide(){ showSlide(current-1); }
+
+// Init
+dots[current].classList.add("active");
+
+// Fullscreen Function
+function openFullscreen() {
+    const activeSlide = slides[current];
+    const img = activeSlide.querySelector(".slide-img");
+    if (!img) return;
+
+    if (img.requestFullscreen) {
+        img.requestFullscreen();
+    } else if (img.mozRequestFullScreen) {
+        img.mozRequestFullScreen();
+    } else if (img.webkitRequestFullscreen) { 
+        img.webkitRequestFullscreen();
+    } else if (img.msRequestFullscreen) { 
+        img.msRequestFullscreen();
+    }
+}
 </script>
+
 <?php endif; ?>
 </body>
 </html>

@@ -9,7 +9,10 @@
                     <option value="">-- Pilih Departemen --</option>
                     <?php
                     $res = $connIMOM->query("SELECT id, dept_name FROM department ORDER BY dept_name");
-                    while ($d = $res->fetch_assoc()): ?>
+                    while ($d = $res->fetch_assoc()): $deptName = strtoupper($d['dept_name']);
+                        if (in_array($deptName, ['QA', 'MIS'])){
+                            continue;
+                        } ?>
                         <option value="<?= $d['id'] ?>"><?= htmlspecialchars($d['dept_name']) ?></option>
                     <?php endwhile; ?>
                 </select>
@@ -38,3 +41,51 @@
         </form>
     </div>
 </div>
+
+<script>
+function loadWorkstations(deptId, targetId) {
+    const wsSelect = document.getElementById(targetId);
+    wsSelect.innerHTML = "<option value=''>Loading...</option>";
+
+    if (!deptId) {
+        wsSelect.innerHTML = "<option value=''>-- Pilih Workstation --</option>";
+        return;
+    }
+
+    fetch("actions/get_workstations.php?dept_id=" + deptId)
+        .then(res => res.json())
+        .then(data => {
+            wsSelect.innerHTML = "<option value=''>-- Pilih Workstation --</option>";
+            data.forEach(ws => {
+                wsSelect.innerHTML += `<option value="${ws.id}">${ws.name}</option>`;
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            wsSelect.innerHTML = "<option value=''>Gagal memuat</option>";
+        });
+}
+
+function loadSubWorkstations(wsId, targetId) {
+    const subWsSelect = document.getElementById(targetId);
+    subWsSelect.innerHTML = "<option value=''>Loading...</option>";
+
+    if (!wsId) {
+        subWsSelect.innerHTML = "<option value=''>-- Pilih Sub Workstation --</option>";
+        return;
+    }
+
+    fetch("actions/get_subws.php?workstation_id=" + wsId)
+        .then(res => res.json())
+        .then(data => {
+            subWsSelect.innerHTML = "<option value=''>-- Pilih Sub Workstation --</option>";
+            data.forEach(sub => {
+                subWsSelect.innerHTML += `<option value="${sub.id}">${sub.name}</option>`;
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            subWsSelect.innerHTML = "<option value=''>Gagal memuat</option>";
+        });
+}
+</script>

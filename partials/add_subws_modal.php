@@ -9,7 +9,11 @@
                     <option value="">-- Pilih Departemen --</option>
                     <?php
                     $res = $connIMOM->query("SELECT id, dept_name FROM department ORDER BY dept_name");
-                    while ($d = $res->fetch_assoc()): ?>
+                    while ($d = $res->fetch_assoc()): 
+                        $deptName = strtoupper($d['dept_name']);
+                        if (in_array($deptName, ['QA', 'MIS'])){
+                            continue;
+                        } ?>
                         <option value="<?= $d['id'] ?>"><?= htmlspecialchars($d['dept_name']) ?></option>
                     <?php endwhile; ?>
                 </select>
@@ -31,3 +35,32 @@
         </form>
     </div>
 </div>
+
+<script>
+function loadWorkstations(deptId, targetId) {
+    const wsSelect = document.getElementById(targetId);
+    wsSelect.innerHTML = "<option value=''>Loading...</option>";
+
+    if (!deptId) {
+        wsSelect.innerHTML = "<option value=''>-- Pilih Workstation --</option>";
+        return;
+    }
+
+    fetch("actions/get_workstations.php?dept_id=" + deptId)
+        .then(res => res.json())
+        .then(data => {
+            if (data.length > 0) {
+                wsSelect.innerHTML = "<option value=''>-- Pilih Workstation --</option>";
+                data.forEach(ws => {
+                    wsSelect.innerHTML += `<option value="${ws.id}">${ws.name}</option>`;
+                });
+            } else {
+                wsSelect.innerHTML = "<option value=''>Tidak ada workstation</option>";
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            wsSelect.innerHTML = "<option value=''>Gagal memuat</option>";
+        });
+}
+</script>

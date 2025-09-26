@@ -1,34 +1,59 @@
 <?php
 session_start();
+require_once 'config.php'; // ✅ koneksi $connIMOM
 
 if (!isset($_SESSION['pending_user'])) {
     header("Location: login.php");
     exit;
 }
 
+$npk   = $_SESSION['pending_user']['npk'];
 $error = '';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['otp'])) {
-    if ($_POST['otp'] === (string)$_SESSION['pending_user']['otp']) {
-        // Set Session
-        $_SESSION['npk']      = $_SESSION['pending_user']['npk'];
-        $_SESSION['user_id']   = $_SESSION['pending_user']['npk'];
-        $_SESSION['username']  = $_SESSION['pending_user']['username'];
-        $_SESSION['dept']      = $_SESSION['pending_user']['dept'];
-        $_SESSION['dept_id']   = $_SESSION['pending_user']['dept_id'];
+    $inputOtp = trim($_POST['otp']);
 
-        // redirect
-        $redirect = $_SESSION['pending_user']['redirect_after_otp'] ?? 'index.php?page=main_dashboard';
+    // ambil otp terbaru dari tabel
+    $stmt = $connIMOM->prepare("
+        SELECT kode_otp, expired_at 
+        FROM otp 
+        WHERE npk = ? 
+        ORDER BY id DESC 
+        LIMIT 1
+    ");
+    $stmt->bind_param("s", $npk);
+    $stmt->execute();
+    $rowOtp = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
 
-        unset($_SESSION['pending_user']);
-
-        header("Location: " . $redirect);
-        exit;
+    if (!$rowOtp) {
+        $error = "Kode OTP tidak ditemukan. Silakan login ulang.";
     } else {
-        $error = 'OTP salah!';
+        $dbOtp      = $rowOtp['kode_otp'];
+        $expired_at = strtotime($rowOtp['expired_at']);
+        $now        = time();
+
+        if ($now > $expired_at) {
+            $error = "Kode OTP sudah expired. Silakan login ulang.";
+        } elseif ($inputOtp === $dbOtp) {
+            // ✅ OTP benar
+            $_SESSION['npk']      = $_SESSION['pending_user']['npk'];
+            $_SESSION['user_id']  = $_SESSION['pending_user']['npk'];
+            $_SESSION['username'] = $_SESSION['pending_user']['username'];
+            $_SESSION['dept']     = $_SESSION['pending_user']['dept'];
+            $_SESSION['dept_id']  = $_SESSION['pending_user']['dept_id'];
+
+            $redirect = $_SESSION['pending_user']['redirect_after_otp'] ?? 'index.php?page=main_dashboard';
+            unset($_SESSION['pending_user']);
+
+            header("Location: " . $redirect);
+            exit;
+        } else {
+            $error = "Kode OTP salah!";
+        }
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -60,13 +85,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['otp'])) {
     <p class="text-sm text-gray-800 mb-6">PT KAYABA INDONESIA</p>
 
     <h1 class="text-xl font-bold text-gray-800 mb-4">VERIFIKASI KODE OTP</h1>
-
-    <!-- Info Testing -->
-    <div class="bg-yellow-100 border border-yellow-300 text-yellow-800 text-sm rounded px-4 py-2 mb-4">
-      Untuk Testing: <strong>Kode OTP Anda adalah <?= $_SESSION['pending_user']['otp'] ?></strong>
+    <div class="bg-green-100 border border-green-300 text-green-800 text-sm rounded px-4 py-2 mb-4">
+      Kode OTP telah dikirim ke nomor telepon Anda.
     </div>
 
-    <p class="text-green-600 font-medium mb-2">Kode OTP telah dikirim ke nomor telepon Anda.</p>
     <p class="text-gray-600 text-sm mb-6">Silakan masukkan kode di bawah ini.</p>
 
     <?php if ($error): ?>
@@ -95,7 +117,6 @@ const inputs = document.querySelectorAll('.otp-input');
 const otpHidden = document.getElementById('otp-hidden');
 const form = document.getElementById('otp-form');
 
-// otomatis pindah focus
 inputs.forEach((input, index) => {
   input.addEventListener('input', () => {
     if (input.value.length === 1 && index < inputs.length - 1) {
@@ -103,7 +124,6 @@ inputs.forEach((input, index) => {
     }
     updateHidden();
   });
-
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Backspace' && input.value === '' && index > 0) {
       inputs[index - 1].focus();
@@ -115,8 +135,7 @@ function updateHidden() {
   otpHidden.value = Array.from(inputs).map(i => i.value).join('');
 }
 
-// saat submit, gabungkan semua input ke hidden
-form.addEventListener('submit', (e) => {
+form.addEventListener('submit', () => {
   updateHidden();
 });
 </script>

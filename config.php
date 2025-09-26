@@ -33,4 +33,15 @@ $connIMOM = new mysqli($host_imom, $user_imom, $pass_imom, $db_imom);
 if ($connIMOM->connect_error) {
     die("Koneksi ke DB OM IM gagal: " . $connIMOM->connect_error);
 }
+
+// ISD
+$host_isd = 'localhost';
+$user_isd = 'root';
+$pass_isd = '';
+$db_isd   = 'isd';
+
+$connISD = new mysqli($host_isd, $user_isd, $pass_isd, $db_isd);
+if ($connISD->connect_error) {
+    die("Koneksi ke DB ISD gagal: " . $connISD->connect_error);
+}
 ?>

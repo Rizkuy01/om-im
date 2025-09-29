@@ -17,7 +17,7 @@ if (!in_array(strtoupper($_SESSION['dept'] ?? ''), ['QA','MIS'])) {
         <!-- Card Workstation -->
         <div onclick="openModal('workstationModal')" 
             class="cursor-pointer bg-white border border-red-200 rounded-lg shadow hover:shadow-lg 
-                   flex flex-col items-center justify-center p-6 transition transform hover:scale-105">
+                   flex flex-col items-center justify-center p-6 transition transform hover:scale-105 hover:bg-gray-100">
             <div class="w-14 h-14 flex items-center justify-center rounded-full bg-gradient-to-br from-green-400 to-green-600 text-white shadow">
                 <i class="fa-solid fa-industry text-2xl"></i>
             </div>
@@ -27,7 +27,7 @@ if (!in_array(strtoupper($_SESSION['dept'] ?? ''), ['QA','MIS'])) {
         <!-- Card Sub Workstation -->
         <div onclick="openModal('subWsModal')" 
             class="cursor-pointer bg-white border border-red-200 rounded-lg shadow hover:shadow-lg 
-                   flex flex-col items-center justify-center p-6 transition transform hover:scale-105">
+                   flex flex-col items-center justify-center p-6 transition transform hover:scale-105 hover:bg-gray-100">
             <div class="w-14 h-14 flex items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-blue-600 text-white shadow">
                 <i class="fa-solid fa-gears text-2xl"></i>
             </div>
@@ -37,7 +37,7 @@ if (!in_array(strtoupper($_SESSION['dept'] ?? ''), ['QA','MIS'])) {
         <!-- Card Process -->
         <div onclick="openModal('processModal')" 
             class="cursor-pointer bg-white border border-red-200 rounded-lg shadow hover:shadow-lg 
-                   flex flex-col items-center justify-center p-6 transition transform hover:scale-105">
+                   flex flex-col items-center justify-center p-6 transition transform hover:scale-105 hover:bg-gray-100">
             <div class="w-14 h-14 flex items-center justify-center rounded-full bg-gradient-to-br from-purple-400 to-purple-600 text-white shadow">
                 <i class="fa-solid fa-diagram-project text-2xl"></i>
             </div>

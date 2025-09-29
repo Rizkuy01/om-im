@@ -11,7 +11,6 @@ class Auth {
     }
 
     public function login($npk, $password, $captcha) {
-        session_start();
         $result = ['error' => '', 'redirect' => ''];
 
         // === Validasi Captcha ===
@@ -78,13 +77,16 @@ class Auth {
         $stmtOtp->execute();
         $stmtOtp->close();
 
+        // === Auto delete expired OTP ===
+        $this->connIMOM->query("DELETE FROM otp WHERE expired_at < NOW()");
+
         // === Simpan ke session sementara ===
         $_SESSION['pending_user'] = [
             'npk'      => $user['npk'],
             'username' => $user['full_name'],
             'dept'     => $deptName,
             'dept_id'  => $deptId,
-            'otp'      => $otpCode, // ⚠️ untuk testing, hapus kalau sudah kirim via SMS
+            'otp'      => $otpCode,
         ];
         unset($_SESSION['captcha']);
 

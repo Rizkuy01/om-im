@@ -55,20 +55,22 @@ if (isset($_GET['page']) && $_GET['page'] === 'monitoring' && isset($_GET['npk']
       </button>
     </form>
 
-    <!-- Monitoring Buttons -->
-    <div class="grid grid-cols-2 gap-3 mt-3">
-        <button type="button" onclick="openMonitoringModal()"
-        class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-md transition duration-300">
-        Monitoring OM
-        </button>
-        <button type="button" onclick="window.location.href='check_im.php'"
-        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-md transition duration-300">
-        Monitoring IM
-        </button>
+    <!-- Separator -->
+    <div class="flex items-center my-2">
+      <div class="flex-grow border-t border-gray-500"></div>
+      <span class="mx-2 text-gray-500 text-sm">atau</span>
+      <div class="flex-grow border-t border-gray-500"></div>
     </div>
+
+    <!-- Link Monitoring -->
+    <p class="text-sm text-gray-700">
+      <a href="javascript:void(0)" onclick="openMonitoringModal()" 
+         class="text-gray-600 font-semibold hover:underline hover:text-red-600">
+         Klik disini untuk akses Monitoring
+      </a>
+    </p>
   </div>
 
 <?php include 'partials/monitoring_modal.php'; ?>
-<!-- JS sama persis seperti sebelumnya -->
 </body>
 </html>

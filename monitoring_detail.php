@@ -127,15 +127,25 @@ Swal.fire({ icon:'error', title:'Akses Ditolak', text: <?= json_encode($errorMes
     .then(() => window.history.back());
 </script>
 <?php else: ?>
-  <!-- Header -->
-  <div class="bg-red-600 text-white px-6 py-4 shadow-md text-center">
-    <h1 class="text-xl font-bold">Monitoring Result</h1>
-    <p class="mt-1 text-sm">
-        <strong>NPK:</strong> <?= htmlspecialchars($npk) ?> | 
-        <strong>Dept:</strong> <?= htmlspecialchars($deptName) ?> | 
-        <strong>Line:</strong> <?= htmlspecialchars($subWsName) ?> |
-        <strong>Process:</strong> <?= htmlspecialchars($procName) ?>
-    </p>
+   <!-- Header -->
+  <div class="bg-red-600 text-white px-6 py-4 shadow-md flex justify-between items-center">
+    <div class="text-center flex-1">
+      <h1 class="text-xl font-bold">Monitoring Result</h1>
+      <p class="mt-1 text-sm">
+          <strong>NPK:</strong> <?= htmlspecialchars($npk) ?> | 
+          <strong>Dept:</strong> <?= htmlspecialchars($deptName) ?> | 
+          <strong>Line:</strong> <?= htmlspecialchars($subWsName) ?> |
+          <strong>Process:</strong> <?= htmlspecialchars($procName) ?>
+      </p>
+    </div>
+
+    <!-- Tombol Kembali -->
+    <div class="ml-4">
+      <a href="monitoring_process.php?npk=<?= urlencode($npk) ?>&machine=<?= urlencode($machine) ?>"
+         class="bg-white text-red-600 font-semibold px-4 py-2 rounded shadow hover:bg-gray-100 transition">
+         ← Kembali
+      </a>
+    </div>
   </div>
 
   <!-- Carousel -->

@@ -34,11 +34,20 @@ $stmt->close();
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
 
-    <div class="bg-red-600 text-white py-4 shadow-md text-center">
-        <h1 class="text-2xl font-bold tracking-wide">
-            Pilih Process - <?= htmlspecialchars($subWs['name']) ?>
-        </h1>
-        <p class="text-sm text-red-100">NPK: <?= htmlspecialchars($npk) ?></p>
+    <!-- HEADER -->
+    <div class="bg-red-600 text-white py-4 shadow-md text-center flex justify-between items-center">
+        <div class="text-center flex-1">
+            <h1 class="text-2xl font-bold tracking-wide">
+                Pilih Process - <?= htmlspecialchars($subWs['name']) ?>
+            </h1>
+            <p class="text-sm text-red-100">NPK: <?= htmlspecialchars($npk) ?></p>
+        </div>
+        <div class="mr-4">
+            <a href="index.php"
+                class="bg-white text-red-600 font-semibold px-4 py-2 rounded shadow hover:bg-gray-100 transition">
+                ← Kembali
+            </a>
+        </div>
     </div>
 
     <div class="flex-1 p-6">
@@ -104,12 +113,6 @@ $stmt->close();
                     Tidak ada process
                 </div>
             <?php endif; ?>
-        </div>
-
-        <div class="mt-8 text-center">
-            <a href="index.php" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded shadow">
-                ← Kembali
-            </a>
         </div>
     </div>
 

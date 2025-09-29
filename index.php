@@ -58,7 +58,7 @@ if ($currentPage === 'monitoring' && isset($_GET['npk'])) {
       <a href="#"
         onclick="openMonitoringModal(); return false;"
         class="flex items-center px-3 py-2 rounded-md <?= $currentPage === 'monitoring' ? 'text-red-600 font-semibold' : 'text-gray-700 hover:text-red-600' ?>">
-        <i class="fa fa-chart-line px-2"></i> Monitoring OM/IM
+        <i class="fa fa-tv px-2"></i> Monitoring OM/IM
       </a>
       <?php if (in_array($_SESSION['dept'], ['QA','MIS'])): ?>
       <a href="index.php?page=system" 

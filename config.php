@@ -1,5 +1,5 @@
 <?php
-
+date_default_timezone_set('Asia/Jakarta');
 
 // AUTHENTICATE
 $host_userdb = 'localhost';

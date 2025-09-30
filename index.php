@@ -111,6 +111,9 @@ if ($currentPage === 'monitoring' && isset($_GET['npk'])) {
           case 'detail_sub_workstations':  
             include 'detail_sub_workstations.php';
             break;
+          case 'rules':  
+            include 'rules.php';
+            break;
           case 'main_dashboard':
             include 'main_dashboard.php';
             break;

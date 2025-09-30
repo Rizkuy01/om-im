@@ -58,25 +58,31 @@ $isProduction = (isset($_SESSION['dept']) && stripos($_SESSION['dept'], 'PRODUCT
                         </h3>
 
                         <!-- Button -->
-                        <div class="flex gap-2">
-                            <?php if ($isProduction): ?>
-                                <!-- Production: hanya OM -->
-                                <a href="index.php?page=detail_sub_workstations&type=OM&workstation_id=<?= $workstation_id ?>&dept_id=<?= $dept_id ?>&sub_id=<?= $row['id'] ?>" 
-                                   class="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs font-medium px-3 py-2 rounded shadow-md text-center transition-all duration-300">
-                                    OM
-                                </a>
-                            <?php else: ?>
-                                <!-- QA/MIS: IM + OM -->
-                                <a href="index.php?page=detail_sub_workstations&type=IM&workstation_id=<?= $workstation_id ?>&dept_id=<?= $dept_id ?>&sub_id=<?= $row['id'] ?>" 
-                                   class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-3 py-2 rounded shadow-md text-center transition-all duration-300">
-                                    IM
-                                </a>
-                                <a href="index.php?page=detail_sub_workstations&type=OM&workstation_id=<?= $workstation_id ?>&dept_id=<?= $dept_id ?>&sub_id=<?= $row['id'] ?>" 
-                                   class="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs font-medium px-3 py-2 rounded shadow-md text-center transition-all duration-300">
-                                    OM
-                                </a>
-                            <?php endif; ?>
-                        </div>
+                        <!-- Button -->
+<div class="flex gap-2">
+    <?php if ($isProduction): ?>
+        <!-- Production: hanya OM -->
+        <a href="index.php?page=detail_sub_workstations&type=OM&workstation_id=<?= $workstation_id ?>&dept_id=<?= $dept_id ?>&sub_id=<?= $row['id'] ?>" 
+           class="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs font-medium px-3 py-2 rounded shadow-md text-center transition-all duration-300">
+            OM
+        </a>
+    <?php else: ?>
+        <!-- QA/MIS: IM + OM + RULES -->
+        <a href="index.php?page=detail_sub_workstations&type=IM&workstation_id=<?= $workstation_id ?>&dept_id=<?= $dept_id ?>&sub_id=<?= $row['id'] ?>" 
+           class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-3 py-2 rounded shadow-md text-center transition-all duration-300">
+            IM
+        </a>
+        <a href="index.php?page=detail_sub_workstations&type=OM&workstation_id=<?= $workstation_id ?>&dept_id=<?= $dept_id ?>&sub_id=<?= $row['id'] ?>" 
+           class="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs font-medium px-3 py-2 rounded shadow-md text-center transition-all duration-300">
+            OM
+        </a>
+        <a href="index.php?page=rules&workstation_id=<?= $workstation_id ?>&dept_id=<?= $dept_id ?>&sub_id=<?= $row['id'] ?>" 
+           class="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium px-3 py-2 rounded shadow-md text-center transition-all duration-300">
+            RULES
+        </a>
+    <?php endif; ?>
+</div>
+
                     </div>
                 <?php endwhile; ?>
             </div>

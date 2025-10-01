@@ -1,5 +1,5 @@
 <?php
-// Ambil list process untuk dropdown
+// Ambil list process\
 $procStmt = $connIMOM->prepare("SELECT id, process_name FROM process WHERE sub_workstations_id = ?");
 $procStmt->bind_param("i", $sub_id);
 $procStmt->execute();

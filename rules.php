@@ -73,14 +73,15 @@ $stmt->close();
                                 <td class="px-6 py-3 border"><?= htmlspecialchars($row['path_name']) ?></td>
                                 <td class="px-6 py-3 border text-center space-x-2">
                                     <a href="javascript:void(0)" 
-                                       onclick="openEditModal(<?= $row['id'] ?>)" 
-                                       class="bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-medium px-3 py-1 rounded-full shadow">
-                                       <i class="fa-solid fa-pen-to-square"></i>
+                                    onclick="openEditModal(<?= $row['id'] ?>, '<?= htmlspecialchars($row['rules_name'],ENT_QUOTES) ?>', <?= (int)$row['process_id'] ?>)" 
+                                    class="bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-medium px-3 py-1 rounded-full shadow">
+                                    <i class="fa-solid fa-pen-to-square"></i>
                                     </a>
-                                    <a href="javascript:void(0)" 
-                                       onclick="confirmDelete(<?= $row['id'] ?>, '<?= htmlspecialchars($row['rules_name'], ENT_QUOTES) ?>')" 
-                                       class="bg-red-600 hover:bg-red-700 text-white text-xs font-medium px-3 py-1 rounded-full shadow">
-                                       <i class="fa-solid fa-trash"></i>
+
+                                    <a href="actions/delete_rules.php?id=<?= $row['id'] ?>&sub_id=<?= $sub_id ?>&workstation_id=<?= $workstation_id ?>&dept_id=<?= $dept_id ?>" 
+                                    onclick="return confirm('Yakin hapus rules ini?')" 
+                                    class="bg-red-600 hover:bg-red-700 text-white text-xs font-medium px-3 py-1 rounded-full shadow">
+                                    <i class="fa-solid fa-trash"></i>
                                     </a>
                                 </td>
                             </tr>
@@ -106,6 +107,7 @@ $stmt->close();
     </div>
 </div>
 <?php include 'partials/add_rules_modal.php'; ?>
+<?php include 'partials/edit_rules_modal.php'; ?>
 
 <!-- DataTables -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">

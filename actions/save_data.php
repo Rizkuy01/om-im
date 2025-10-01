@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $suffix    = ($type === 'OM') ? '-OM' : '-IM';
     $redirect  = "../index.php?page=detail_sub_workstations&sub_id={$sub_workstation_id}&workstation_id={$workstation_id}&dept_id={$dept_id}&type={$type}";
 
-    // 🔎 Validasi dasar
+    // Validasi dasar
     if ($sub_workstation_id <= 0 || !$process_id || !$uploaded) {
         $_SESSION['alert'] = ["type"=>"error","title"=>"Data tidak lengkap","message"=>"Harap lengkapi semua data."];
         header("Location: $redirect"); exit;
@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header("Location: $redirect"); exit;
     }
 
-    // 🔒 Untuk OM → hanya boleh 1 file per process
+    // Restrict file hanya boleh 1 file per process
     if ($type === 'OM') {
         $stmt = $connIMOM->prepare("SELECT id FROM data_om WHERE sub_workstation_id=? AND process_id=? LIMIT 1");
         $stmt->bind_param("ii", $sub_workstation_id, $process_id);
@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->close();
     }
 
-    // 🔎 Untuk IM → cek duplikat part number
+    // cek duplikat part number di IM
     if ($type === 'IM') {
         $stmt = $connIMOM->prepare("SELECT id FROM data_im WHERE part_number=? AND sub_workstation_id=? AND process_id=?");
         $stmt->bind_param("sii", $part_number, $sub_workstation_id, $process_id);
@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->close();
     }
 
-    // 🔧 Ambil nama folder penyimpanan
+    // Ambil nama folder penyimpanan
     $deptName = $connIMOM->query("SELECT dept_name FROM department WHERE id=$dept_id")->fetch_assoc()['dept_name'] ?? "Dept";
     $subName  = $connIMOM->query("SELECT name FROM sub_workstations WHERE id=$sub_workstation_id")->fetch_assoc()['name'] ?? "SubWS";
 
@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $dbPath   = "uploads/$deptName/$subName/";
     if (!is_dir($basePath)) mkdir($basePath, 0777, true);
 
-    // 🔧 Rename file
+    // Rename file
     if ($type === 'OM') {
         // Ambil nama process untuk rename
         $procRow = $connIMOM->query("SELECT process_name FROM process WHERE id=$process_id")->fetch_assoc();
@@ -80,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $newFileName = $fileBase . $suffix . "." . $file_ext;
     $targetFile  = $basePath . $newFileName;
 
-    // ⬆️ Upload file
+    // Upload file
     if (move_uploaded_file($uploaded['tmp_name'], $targetFile)) {
         if ($type === 'OM') {
             $stmt = $connIMOM->prepare("INSERT INTO data_om (sub_workstation_id, process_id, file_name, path_name) VALUES (?, ?, ?, ?)");

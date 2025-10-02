@@ -257,39 +257,109 @@ Swal.fire({ icon:'error', title:'Akses Ditolak', text: <?= json_encode($errorMes
 </div>
 
 <script>
-    let current = 0;
-    const slides = document.querySelectorAll(".slide");
-    const dots   = document.querySelectorAll(".dot");
+let current = 0;
+const slides = document.querySelectorAll(".slide");
+const dots   = document.querySelectorAll(".dot");
+let fullscreenActive = false;
+let fsContainer, fsContent;
 
-    function showSlide(i){
-        slides[current].classList.remove("active");
-        dots[current].classList.remove("active");
+// Buat container fullscreen sekali saja
+function initFullscreenContainer() {
+    fsContainer = document.createElement("div");
+    fsContainer.id = "fullscreen-container";
+    fsContainer.style.cssText = `
+        background: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+    `;
+    fsContent = document.createElement("div");
+    fsContainer.appendChild(fsContent);
+}
 
-        current = (i+slides.length)%slides.length;
+// Tampilkan slide
+function showSlide(i) {
+    slides[current].classList.remove("active");
+    dots[current].classList.remove("active");
 
-        slides[current].classList.add("active");
-        dots[current].classList.add("active");
+    current = (i + slides.length) % slides.length;
+
+    slides[current].classList.add("active");
+    dots[current].classList.add("active");
+
+    // Update fullscreen jika aktif
+    if (fullscreenActive) {
+        updateFullscreenImage();
     }
+}
 
-    function nextSlide(){ showSlide(current+1); }
-    function prevSlide(){ showSlide(current-1); }
+function nextSlide(){ showSlide(current + 1); }
+function prevSlide(){ showSlide(current - 1); }
 
-    // Fullscreen
-    function openFullscreen() {
-        const activeSlide = slides[current];
-        const img = activeSlide.querySelector(".slide-img") || activeSlide.querySelector("iframe");
-        if (!img) return;
+// Inisialisasi dots
+if (dots.length > 0) dots[current].classList.add("active");
 
-        if (img.requestFullscreen) {
-            img.requestFullscreen();
-        } else if (img.mozRequestFullScreen) {
-            img.mozRequestFullScreen();
-        } else if (img.webkitRequestFullscreen) { 
-            img.webkitRequestFullscreen();
-        } else if (img.msRequestFullscreen) { 
-            img.msRequestFullscreen();
+// Buka fullscreen
+function openFullscreen() {
+    if (!fsContainer) initFullscreenContainer();
+
+    fullscreenActive = true;
+    updateFullscreenImage();
+
+    // Masuk fullscreen (hanya sekali)
+    if (!document.fullscreenElement) {
+        document.body.appendChild(fsContainer);
+        fsContainer.requestFullscreen();
+    }
+}
+
+// Update isi fullscreen sesuai slide aktif
+function updateFullscreenImage() {
+    fsContent.innerHTML = ""; // kosongkan dulu
+    const activeSlide = slides[current];
+    const img = activeSlide.querySelector(".slide-img") || activeSlide.querySelector("iframe");
+
+    if (!img) return;
+
+    let clone;
+    if (img.tagName === "IFRAME") {
+        clone = document.createElement("iframe");
+        clone.src = img.src;
+        clone.style.width = "90%";
+        clone.style.height = "90%";
+    } else {
+        clone = document.createElement("img");
+        clone.src = img.src;
+        clone.style.maxWidth = "100%";
+        clone.style.maxHeight = "100%";
+    }
+    fsContent.appendChild(clone);
+}
+
+// Tutup fullscreen saat ESC
+document.addEventListener("fullscreenchange", () => {
+    if (!document.fullscreenElement) {
+        fullscreenActive = false;
+        if (fsContainer && fsContainer.parentNode) {
+            fsContainer.remove();
         }
     }
+});
+
+// Navigasi keyboard saat fullscreen
+document.addEventListener("keydown", (e) => {
+    if (!fullscreenActive) return;
+
+    if (e.key === "ArrowRight") {
+        nextSlide();
+    } else if (e.key === "ArrowLeft") {
+        prevSlide();
+    } else if (e.key === "Escape") {
+        fullscreenActive = false;
+    }
+});
 </script>
 <?php endif; ?>
 </body>

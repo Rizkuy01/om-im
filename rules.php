@@ -115,20 +115,27 @@ $stmt->close();
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 <script>
     $(document).ready(function() {
-        $('#rulesTable').DataTable({
-            pageLength: 5,
-            lengthMenu: [5, 10, 20],
-            language: {
-                search: "Cari:",
-                lengthMenu: "Tampilkan _MENU_ data",
-                info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
-                paginate: {
-                    first: "Awal",
-                    last: "Akhir",
-                    next: "→",
-                    previous: "←"
+        // Cek apakah tbody punya data selain row kosong
+        let rowCount = $("#rulesTable tbody tr").length;
+        let isEmpty = rowCount === 1 && $("#rulesTable tbody tr td").length === 1;
+
+        if (!isEmpty) {
+            $('#rulesTable').DataTable({
+                pageLength: 5,
+                lengthMenu: [5, 10, 20],
+                language: {
+                    search: "Cari:",
+                    lengthMenu: "Tampilkan _MENU_ data",
+                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                    paginate: {
+                        first: "Awal",
+                        last: "Akhir",
+                        next: "→",
+                        previous: "←"
+                    }
                 }
-            }
-        });
+            });
+        }
     });
 </script>
+

@@ -19,5 +19,8 @@
     "url": "https://github.com/Rizkuy01/om-im/issues"
   },
   "homepage": "https://github.com/Rizkuy01/om-im#readme",
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "tailwindcss": "^4.1.17"
+  }
 }

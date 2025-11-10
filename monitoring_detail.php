@@ -68,24 +68,8 @@ if (!$npk || !$machine || !$processId) {
                 }
                 $stmt->close();
 
-                // --- GET OM (selalu ikut 1 terbaru)
-                $stmt = $connIMOM->prepare("SELECT file_name, path_name FROM data_om 
-                                            WHERE sub_workstation_id=? AND process_id=? 
-                                            ORDER BY id DESC LIMIT 1");
-                $stmt->bind_param("ii", $machine, $processId);
-                $stmt->execute();
-                $omFile = $stmt->get_result()->fetch_assoc();
-                $stmt->close();
-                if ($omFile) {
-                    $files[] = [
-                        "type" => "OM",
-                        "src"  => $omFile['path_name'].$omFile['file_name'],
-                        "name" => $omFile['file_name'],
-                        "label"=> "OM"
-                    ];
-                }
 
-                // --- GET IM (jika ada filter pilih part → hanya tampilkan itu)
+                // --- GET IM (duluan sebelum OM)
                 if ($selectedPart) {
                     $stmt = $connIMOM->prepare("SELECT part_number, file_name, path_name FROM data_im 
                                                 WHERE sub_workstation_id=? AND process_id=? AND part_number=? 
@@ -110,7 +94,26 @@ if (!$npk || !$machine || !$processId) {
                 }
                 $stmt->close();
 
-                // --- GET Rules (selalu ikut)
+
+                // --- GET OM (setelah IM)
+                $stmt = $connIMOM->prepare("SELECT file_name, path_name FROM data_om 
+                                            WHERE sub_workstation_id=? AND process_id=? 
+                                            ORDER BY id DESC LIMIT 1");
+                $stmt->bind_param("ii", $machine, $processId);
+                $stmt->execute();
+                $omFile = $stmt->get_result()->fetch_assoc();
+                $stmt->close();
+                if ($omFile) {
+                    $files[] = [
+                        "type" => "OM",
+                        "src"  => $omFile['path_name'].$omFile['file_name'],
+                        "name" => $omFile['file_name'],
+                        "label"=> "OM"
+                    ];
+                }
+
+
+                // --- GET Rules (tetap terakhir)
                 $stmt = $connIMOM->prepare("SELECT rules_name, file_name, path_name FROM data_rules 
                                             WHERE sub_workstation_id=? AND process_id=? 
                                             ORDER BY id DESC");
@@ -127,6 +130,7 @@ if (!$npk || !$machine || !$processId) {
                     ];
                 }
                 $stmt->close();
+
 
                 if (empty($files)) {
                     $errorMessage = "Belum ada file OM/IM/Rules untuk mesin {$subWsName} - Proses {$procName}";

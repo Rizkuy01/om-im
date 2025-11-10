@@ -226,7 +226,7 @@ Swal.fire({ icon:'error', title:'Akses Ditolak', text: <?= json_encode($errorMes
             <div class="slide <?= $i===0?'active':'' ?> text-center">
                 <p class="font-semibold mb-2"><?= htmlspecialchars($f['label']) ?></p>
                 
-                <?php if ($f['type']==='RULES' && preg_match('/\.(pdf)$/i',$f['name'])): ?>
+                <?php if (preg_match('/\.pdf$/i', $f['name'])): ?>
                     <iframe src="<?= htmlspecialchars($f['src']) ?>" class="mx-auto w-full h-[70vh]"></iframe>
                 <?php else: ?>
                     <img src="<?= htmlspecialchars($f['src']) ?>" alt="File" class="mx-auto slide-img">
@@ -315,9 +315,9 @@ function openFullscreen() {
     }
 }
 
-// Update isi fullscreen sesuai slide aktif
+// Update fullscreen
 function updateFullscreenImage() {
-    fsContent.innerHTML = ""; // kosongkan dulu
+    fsContent.innerHTML = ""; 
     const activeSlide = slides[current];
     const img = activeSlide.querySelector(".slide-img") || activeSlide.querySelector("iframe");
 
@@ -325,18 +325,27 @@ function updateFullscreenImage() {
 
     let clone;
     if (img.tagName === "IFRAME") {
+        // PDF viewer
         clone = document.createElement("iframe");
         clone.src = img.src;
-        clone.style.width = "90%";
-        clone.style.height = "90%";
+        clone.style.width = "100vw";
+        clone.style.height = "100vh";
+        clone.style.border = "none";
     } else {
+        // JPG/PNG image
         clone = document.createElement("img");
         clone.src = img.src;
-        clone.style.maxWidth = "100%";
-        clone.style.maxHeight = "100%";
+        clone.style.width = "100vw";
+        clone.style.height = "100vh";
+        clone.style.objectFit = "contain";      
+        clone.style.objectPosition = "center"; 
+        clone.style.backgroundColor = "#000"; 
+        clone.style.display = "block";
+        clone.style.margin = "0 auto";
     }
     fsContent.appendChild(clone);
 }
+
 
 // Tutup fullscreen saat ESC
 document.addEventListener("fullscreenchange", () => {

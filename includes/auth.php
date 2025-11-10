@@ -19,7 +19,7 @@ class Auth {
             return $result;
         }
 
-        // === Ambil user dari ct_users (db lembur1) ===
+        // === Ambil user dari ct_users ===
         $stmt = $this->connUser->prepare("SELECT * FROM ct_users WHERE npk = ? LIMIT 1");
         $stmt->bind_param("s", $npk);
         $stmt->execute();
@@ -68,7 +68,7 @@ class Auth {
         $createdAt = date('Y-m-d H:i:s');
         $expiredAt = date('Y-m-d H:i:s', strtotime('+5 minutes'));
 
-        // Simpan OTP ke table om_im.otp
+        // Simpan OTP
         $stmtOtp = $this->connIMOM->prepare("
             INSERT INTO otp (npk, no_hp, kode_otp, created_at, expired_at)
             VALUES (?, ?, ?, ?, ?)

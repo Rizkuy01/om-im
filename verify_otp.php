@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['otp'])) {
 <head>
   <meta charset="UTF-8">
   <title>Verifikasi OTP</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="assets/css/tailwind.css">
   <style>
     body { font-family: 'Inter', sans-serif; }
     .otp-input {

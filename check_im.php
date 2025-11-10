@@ -19,7 +19,7 @@ if (!$lastIM) {
 <head>
   <meta charset="UTF-8">
   <title>Check Model - Latest IM</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="assets/css/tailwind.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">

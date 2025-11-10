@@ -145,7 +145,7 @@ if (!$npk || !$machine || !$processId) {
 <head>
     <meta charset="UTF-8">
     <title>Monitoring Detail</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="assets/css/tailwind.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         .slide { display: none; }

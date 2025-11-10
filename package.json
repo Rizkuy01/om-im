@@ -21,6 +21,6 @@
   "homepage": "https://github.com/Rizkuy01/om-im#readme",
   "description": "",
   "devDependencies": {
-    "tailwindcss": "^4.1.17"
+    "tailwindcss": "^3.4.13"
   }
 }

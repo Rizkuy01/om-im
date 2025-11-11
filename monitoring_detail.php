@@ -113,10 +113,10 @@ if (!$npk || !$machine || !$processId) {
                 }
 
 
-                // --- GET Rules (tetap terakhir)
+                // --- GET Rules
                 $stmt = $connIMOM->prepare("SELECT rules_name, file_name, path_name FROM data_rules 
                                             WHERE sub_workstation_id=? AND process_id=? 
-                                            ORDER BY id DESC");
+                                            ORDER BY id ASC");
                 $stmt->bind_param("ii", $machine, $processId);
                 $stmt->execute();
                 $resRules = $stmt->get_result();

@@ -1,0 +1,26 @@
+{
+  "dependencies": {
+    "bootstrap-icons": "^1.13.1"
+  },
+  "name": "om-im",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rizkuy01/om-im.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Rizkuy01/om-im/issues"
+  },
+  "homepage": "https://github.com/Rizkuy01/om-im#readme",
+  "description": "",
+  "devDependencies": {
+    "tailwindcss": "^3.4.13"
+  }
+}

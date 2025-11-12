@@ -50,7 +50,7 @@
             <!-- Upload File -->
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Upload File (PDF/PNG/JPG)</label>
-                <input type="file" name="uploaded_file" accept=".pdf,.png,.jpg,.jpeg" required
+                <input type="file" name="uploaded_files[]" accept=".pdf,.png,.jpg,.jpeg" multiple required
                     class="w-full text-sm border px-3 py-2 rounded-lg focus:outline-none focus:ring focus:ring-red-300">
             </div>
 

@@ -9,7 +9,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $type               = strtoupper($_POST['type'] ?? 'IM');
     $process_id         = !empty($_POST['process_id']) ? (int) $_POST['process_id'] : null;
     $part_number        = ($type === 'IM') ? trim($_POST['part_number'] ?? '') : null;
-    $uploaded           = $_FILES['uploaded_file'] ?? null;
+
+    // Ambil semua file (multiple)
+    $uploaded = $_FILES['uploaded_files'] ?? null;
 
     $tableName = ($type === 'OM') ? 'data_om' : 'data_im';
     $suffix    = ($type === 'OM') ? '-OM' : '-IM';
@@ -17,84 +19,89 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Validasi dasar
     if ($sub_workstation_id <= 0 || !$process_id || !$uploaded) {
-        $_SESSION['alert'] = ["type"=>"error","title"=>"Data tidak lengkap","message"=>"Harap lengkapi semua data."];
-        header("Location: $redirect"); exit;
+        $_SESSION['alert'] = ["type" => "error", "title" => "Data tidak lengkap", "message" => "Harap lengkapi semua data."];
+        header("Location: $redirect");
+        exit;
     }
 
     if ($type === 'IM' && $part_number === '') {
-        $_SESSION['alert'] = ["type"=>"error","title"=>"Part Number wajib","message"=>"Part number harus diisi untuk IM."];
-        header("Location: $redirect"); exit;
-    }
-
-    $file_ext = strtolower(pathinfo($uploaded['name'], PATHINFO_EXTENSION));
-    $allowed_ext = ['pdf','png','jpg','jpeg'];
-    if (!in_array($file_ext, $allowed_ext)) {
-        $_SESSION['alert'] = ["type"=>"error","title"=>"Format salah","message"=>"Hanya PDF/PNG/JPG yang diizinkan."];
-        header("Location: $redirect"); exit;
-    }
-
-    // Restrict file hanya boleh 1 file per process
-    if ($type === 'OM') {
-        $stmt = $connIMOM->prepare("SELECT id FROM data_om WHERE sub_workstation_id=? AND process_id=? LIMIT 1");
-        $stmt->bind_param("ii", $sub_workstation_id, $process_id);
-        $stmt->execute();
-        if ($stmt->get_result()->num_rows > 0) {
-            $_SESSION['alert'] = ["type"=>"error","title"=>"Sudah ada file OM","message"=>"Hanya boleh 1 file OM per process."];
-            $stmt->close();
-            header("Location: $redirect"); exit;
-        }
-        $stmt->close();
-    }
-
-    // cek duplikat part number di IM
-    if ($type === 'IM') {
-        $stmt = $connIMOM->prepare("SELECT id FROM data_im WHERE part_number=? AND sub_workstation_id=? AND process_id=?");
-        $stmt->bind_param("sii", $part_number, $sub_workstation_id, $process_id);
-        $stmt->execute();
-        if ($stmt->get_result()->num_rows > 0) {
-            $_SESSION['alert'] = ["type"=>"error","title"=>"Duplikat Model","message"=>"Part number sudah ada untuk process ini."];
-            $stmt->close();
-            header("Location: $redirect"); exit;
-        }
-        $stmt->close();
+        $_SESSION['alert'] = ["type" => "error", "title" => "Part Number wajib", "message" => "Part number harus diisi untuk IM."];
+        header("Location: $redirect");
+        exit;
     }
 
     // Ambil nama folder penyimpanan
     $deptName = $connIMOM->query("SELECT dept_name FROM department WHERE id=$dept_id")->fetch_assoc()['dept_name'] ?? "Dept";
     $subName  = $connIMOM->query("SELECT name FROM sub_workstations WHERE id=$sub_workstation_id")->fetch_assoc()['name'] ?? "SubWS";
 
+    // Hindari spasi di folder (bikin path rusak di URL)
+    $deptName = str_replace(' ', '_', $deptName);
+    $subName  = str_replace(' ', '_', $subName);
+
+    // Path server & database
     $basePath = __DIR__ . "/../uploads/$deptName/$subName/";
-    $dbPath   = "uploads/$deptName/$subName/";
+    $dbPath   = "/om-im/uploads/$deptName/$subName/";
     if (!is_dir($basePath)) mkdir($basePath, 0777, true);
 
-    // Rename file
+    // Ambil nama process (untuk OM)
+    $procName = "Process";
     if ($type === 'OM') {
-        // Ambil nama process untuk rename
         $procRow = $connIMOM->query("SELECT process_name FROM process WHERE id=$process_id")->fetch_assoc();
         $procName = $procRow['process_name'] ?? "Process";
-        $fileBase = preg_replace('/[^A-Za-z0-9_\-]/', '_', $procName); // amanin nama file
-    } else {
-        $fileBase = $part_number;
     }
 
-    $newFileName = $fileBase . $suffix . "." . $file_ext;
-    $targetFile  = $basePath . $newFileName;
+    // Proses semua file
+    $totalFiles = count($uploaded['name']);
+    $allowed_ext = ['pdf', 'png', 'jpg', 'jpeg'];
+    $successCount = 0;
 
-    // Upload file
-    if (move_uploaded_file($uploaded['tmp_name'], $targetFile)) {
+    for ($i = 0; $i < $totalFiles; $i++) {
+        if ($uploaded['error'][$i] !== UPLOAD_ERR_OK) continue;
+
+        $fileName = $uploaded['name'][$i];
+        $tmpName  = $uploaded['tmp_name'][$i];
+        $file_ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+
+        if (!in_array($file_ext, $allowed_ext)) continue;
+
+        // Buat nama file baru
         if ($type === 'OM') {
-            $stmt = $connIMOM->prepare("INSERT INTO data_om (sub_workstation_id, process_id, file_name, path_name) VALUES (?, ?, ?, ?)");
-            $stmt->bind_param("iiss", $sub_workstation_id, $process_id, $newFileName, $dbPath);
+            $fileBase = preg_replace('/[^A-Za-z0-9_\-]/', '_', $procName) . "_" . ($i + 1);
         } else {
-            $stmt = $connIMOM->prepare("INSERT INTO data_im (sub_workstation_id, process_id, part_number, file_name, path_name) VALUES (?, ?, ?, ?, ?)");
-            $stmt->bind_param("iisss", $sub_workstation_id, $process_id, $part_number, $newFileName, $dbPath);
+            $fileBase = preg_replace('/[^A-Za-z0-9_\-]/', '_', $part_number) . "_" . ($i + 1);
         }
-        $stmt->execute();
-        $stmt->close();
 
-        $_SESSION['alert'] = ["type"=>"success","title"=>"Berhasil","message"=>"Data berhasil ditambahkan."];
+        $newFileName = $fileBase . $suffix . "." . $file_ext;
+        $targetFile  = $basePath . $newFileName;
+
+        // Jika nama file sudah ada, tambahkan angka unik
+        $counter = 1;
+        while (file_exists($targetFile)) {
+            $newFileName = $fileBase . "_" . $counter . $suffix . "." . $file_ext;
+            $targetFile = $basePath . $newFileName;
+            $counter++;
+        }
+
+        // Simpan file
+        if (move_uploaded_file($tmpName, $targetFile)) {
+            if ($type === 'OM') {
+                $stmt = $connIMOM->prepare("INSERT INTO data_om (sub_workstation_id, process_id, file_name, path_name) VALUES (?, ?, ?, ?)");
+                $stmt->bind_param("iiss", $sub_workstation_id, $process_id, $newFileName, $dbPath);
+            } else {
+                $stmt = $connIMOM->prepare("INSERT INTO data_im (sub_workstation_id, process_id, part_number, file_name, path_name) VALUES (?, ?, ?, ?, ?)");
+                $stmt->bind_param("iisss", $sub_workstation_id, $process_id, $part_number, $newFileName, $dbPath);
+            }
+            $stmt->execute();
+            $stmt->close();
+            $successCount++;
+        }
+    }
+
+    // Notifikasi hasil
+    if ($successCount > 0) {
+        $_SESSION['alert'] = ["type" => "success", "title" => "Berhasil", "message" => "$successCount file berhasil diupload."];
     } else {
-        $_SESSION['alert'] = ["type"=>"error","title"=>"Upload gagal","message"=>"File gagal disimpan ke server."];
+        $_SESSION['alert'] = ["type" => "error", "title" => "Upload gagal", "message" => "Tidak ada file yang berhasil diupload."];
     }
 
     header("Location: $redirect");

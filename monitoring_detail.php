@@ -98,19 +98,20 @@ if (!$npk || !$machine || !$processId) {
                 // --- GET OM (setelah IM)
                 $stmt = $connIMOM->prepare("SELECT file_name, path_name FROM data_om 
                                             WHERE sub_workstation_id=? AND process_id=? 
-                                            ORDER BY id DESC LIMIT 1");
+                                            ORDER BY id DESC");
                 $stmt->bind_param("ii", $machine, $processId);
                 $stmt->execute();
-                $omFile = $stmt->get_result()->fetch_assoc();
-                $stmt->close();
-                if ($omFile) {
+                $resOM = $stmt->get_result();
+
+                while ($row = $resOM->fetch_assoc()) {
                     $files[] = [
                         "type" => "OM",
-                        "src"  => $omFile['path_name'].$omFile['file_name'],
-                        "name" => $omFile['file_name'],
+                        "src"  => $row['path_name'] . $row['file_name'],
+                        "name" => $row['file_name'],
                         "label"=> "OM"
                     ];
                 }
+                $stmt->close();
 
 
                 // --- GET Rules
